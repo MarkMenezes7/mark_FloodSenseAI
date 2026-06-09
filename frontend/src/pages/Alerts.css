@@ -1,0 +1,178 @@
+/* ── Alerts Page Layout ──────────────────────────────────────────── */
+.alerts-page { padding-bottom: var(--space-2xl); }
+
+.alerts-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-xl);
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .alerts-layout { grid-template-columns: 1fr; }
+}
+
+/* ── Subscription Form Card ──────────────────────────────────────── */
+.sub-form-card h3 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: var(--space-xs);
+  display: flex;
+  align-items: center;
+}
+.card-desc { font-size: 0.875rem; color: var(--text-muted); margin-bottom: var(--space-lg); }
+
+/* ── Form Fields ─────────────────────────────────────────────────── */
+.sub-form { display: flex; flex-direction: column; gap: var(--space-lg); }
+.form-field { display: flex; flex-direction: column; gap: 4px; }
+.form-field label { font-size: 0.875rem; font-weight: 600; color: var(--text-secondary); }
+.req { color: var(--color-danger); margin-left: 2px; }
+.input-hint { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 2px; }
+
+.loc-row { display: flex; gap: var(--space-sm); }
+.loc-row .input { flex: 1; }
+
+.loc-confirmed {
+  font-size: 0.75rem;
+  color: #16a34a;
+  margin-top: 4px;
+}
+
+/* ── Slider ──────────────────────────────────────────────────────── */
+.slider {
+  width: 100%;
+  height: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--color-primary), #38bdf8);
+  outline: none;
+  cursor: pointer;
+}
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  border: 3px solid white;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  cursor: pointer;
+}
+.slider-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+.threshold-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 99px;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-left: 6px;
+}
+
+/* ── Sub button ──────────────────────────────────────────────────── */
+.sub-btn { width: 100%; padding: 14px; font-size: 1rem; margin-top: var(--space-sm); }
+
+/* ── Error ───────────────────────────────────────────────────────── */
+.form-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+}
+
+/* ── Success State ───────────────────────────────────────────────── */
+.success-state { text-align: center; padding: var(--space-lg) 0; }
+.success-icon-big { font-size: 3rem; display: block; margin-bottom: var(--space-md); }
+.success-state h3 { font-size: 1.4rem; font-weight: 700; color: var(--color-primary); margin-bottom: var(--space-sm); }
+.success-state p  { color: var(--text-secondary); margin-bottom: var(--space-lg); }
+
+.activation-box {
+  background: var(--surface-bg);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  text-align: center;
+}
+.activation-box p  { margin-bottom: var(--space-sm); font-size: 0.9rem; color: var(--text-secondary); }
+.activation-box code {
+  background: #dcfce7;
+  color: #15803d;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-weight: 700;
+}
+.bot-number {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: 1px;
+  margin: var(--space-md) 0;
+}
+.wa-activate-btn { width: 100%; justify-content: center; gap: 8px; margin-top: var(--space-sm); }
+
+/* ── Right column ────────────────────────────────────────────────── */
+.alerts-right { display: flex; flex-direction: column; gap: var(--space-lg); }
+
+/* WhatsApp quick start card */
+.wa-quick-card { background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 1px solid #86efac; }
+.wa-quick-card h4 { font-size: 1rem; font-weight: 700; color: #15803d; margin-bottom: var(--space-sm); }
+.wa-quick-card p  { font-size: 0.875rem; color: #166534; margin-bottom: var(--space-md); }
+.wa-full-btn { width: 100%; justify-content: center; gap: 8px; }
+
+/* Steps */
+.steps-list { display: flex; flex-direction: column; gap: var(--space-sm); }
+.step-card {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+  padding: var(--space-md);
+}
+.step-num {
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: white;
+  font-weight: 800;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.step-card h4 { font-size: 0.9rem; font-weight: 700; color: var(--text-primary); margin: 0 0 2px; }
+.step-card p  { font-size: 0.8rem; color: var(--text-muted); margin: 0; }
+
+/* Commands */
+.commands-card h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: var(--space-md); color: var(--text-primary); }
+.commands-list { display: flex; flex-direction: column; gap: var(--space-sm); }
+.cmd-row { display: flex; align-items: center; gap: var(--space-md); }
+.cmd-row code {
+  background: var(--surface-bg);
+  border: 1px solid var(--border-light);
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  white-space: nowrap;
+  min-width: 120px;
+}
+.cmd-row span { font-size: 0.8rem; color: var(--text-muted); }
+
+/* ── Mobile tweaks ───────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .loc-row { flex-direction: column; }
+  .detect-btn { width: 100%; }
+}

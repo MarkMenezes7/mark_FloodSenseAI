@@ -1,0 +1,151 @@
+"""
+Phase 5 — Alert Scheduler
+Uses APScheduler to check flood risk for all subscribers every 30 minutes.
+If a subscriber's location exceeds their risk threshold, send a WhatsApp alert.
+"""
+import asyncio
+import os
+import httpx
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.interval import IntervalTrigger
+from dotenv import load_dotenv
+
+load_dotenv()
+
+TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
+TWILIO_AUTH_TOKEN  = os.getenv("TWILIO_AUTH_TOKEN")
+TWILIO_FROM        = os.getenv("TWILIO_WHATSAPP_FROM", "whatsapp:+14155238886")
+
+# Singleton scheduler instance
+_scheduler: AsyncIOScheduler | None = None
+
+
+def get_scheduler() -> AsyncIOScheduler:
+    global _scheduler
+    if _scheduler is None:
+        _scheduler = AsyncIOScheduler()
+    return _scheduler
+
+
+async def _send_whatsapp_async(to_number: str, message: str) -> bool:
+    """Send WhatsApp message via Twilio REST API (non-blocking)."""
+    if not TWILIO_ACCOUNT_SID or not TWILIO_AUTH_TOKEN or "your_" in str(TWILIO_ACCOUNT_SID):
+        print(f"[Scheduler] Twilio not configured — would have sent to {to_number}: {message[:60]}")
+        return False
+    url = f"https://api.twilio.com/2010-04-01/Accounts/{TWILIO_ACCOUNT_SID}/Messages.json"
+    async with httpx.AsyncClient() as client:
+        try:
+            resp = await client.post(
+                url,
+                data={"From": TWILIO_FROM, "To": f"whatsapp:{to_number}", "Body": message},
+                auth=(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN),
+                timeout=10
+            )
+            if resp.status_code in (200, 201):
+                print(f"[Scheduler] Alert sent to {to_number}")
+                return True
+            else:
+                print(f"[Scheduler] Twilio error {resp.status_code}: {resp.text[:200]}")
+                return False
+        except Exception as exc:
+            print(f"[Scheduler] Failed to send to {to_number}: {exc}")
+            return False
+
+
+async def run_alert_check():
+    """
+    Main scheduled job — runs every 30 minutes.
+    Fetches all subscribers, checks their flood risk, sends alerts if threshold exceeded.
+    """
+    from app.db.database import get_pool
+    from app.services.weather_service import get_weather_by_coords
+    from app.models.flood_predictor import predict_flood_risk
+
+    print("[Scheduler] Running alert check...")
+
+    try:
+        pool = await get_pool()
+    except Exception as exc:
+        print(f"[Scheduler] DB unavailable, skipping check: {exc}")
+        return
+
+    async with pool.acquire() as conn:
+        rows = await conn.fetch(
+            "SELECT phone_number, latitude, longitude, location_name, risk_threshold "
+            "FROM alert_subscriptions WHERE latitude IS NOT NULL AND longitude IS NOT NULL"
+        )
+
+    if not rows:
+        print("[Scheduler] No subscribers with location data. Skipping.")
+        return
+
+    print(f"[Scheduler] Checking {len(rows)} subscriber(s)...")
+
+    for row in rows:
+        phone    = row["phone_number"]
+        lat      = row["latitude"]
+        lon      = row["longitude"]
+        loc_name = row["location_name"] or f"{lat:.2f},{lon:.2f}"
+        threshold = row["risk_threshold"] or 60
+
+        try:
+            weather = await get_weather_by_coords(lat, lon)
+            current = weather["current"]
+            risk = predict_flood_risk(
+                rainfall=current["rainfall_1h"],
+                humidity=current["humidity"],
+                temperature=current["temperature"],
+                wind_speed=current["wind_speed"],
+                river_level=0,
+                lat=lat,
+                lon=lon
+            )
+            score = risk["risk_score"]
+            level = risk["risk_level"]
+
+            print(f"[Scheduler] {loc_name}: {level} ({score:.0f}%) — threshold {threshold}%")
+
+            if score >= threshold:
+                emoji = "🔴" if score >= 75 else "🟠"
+                msg = (
+                    f"{emoji} *FloodSenseAI ALERT*\n\n"
+                    f"Flood risk at *{loc_name}* has reached "
+                    f"*{level} ({score:.0f}%)*\n\n"
+                    f"🌧️ Rainfall: {current['rainfall_1h']} mm/hr\n"
+                    f"💧 Humidity: {current['humidity']}%\n"
+                    f"🌡️ Temp: {current['temperature']}°C\n"
+                    f"💨 Wind: {current['wind_speed']} m/s\n\n"
+                    f"{'⚠️ EVACUATE or move to higher ground immediately!' if score >= 75 else '⚠️ Take precautions — monitor the situation closely.'}\n\n"
+                    f"🌐 Full report: floodsenseai.vercel.app\n"
+                    f"Reply *unsubscribe* to stop alerts."
+                )
+                await _send_whatsapp_async(phone, msg)
+
+        except Exception as exc:
+            print(f"[Scheduler] Error checking {phone}: {exc}")
+
+    print("[Scheduler] Alert check complete.")
+
+
+def start_scheduler():
+    """Start the APScheduler background job. Called once on app startup."""
+    scheduler = get_scheduler()
+    if not scheduler.running:
+        scheduler.add_job(
+            run_alert_check,
+            trigger=IntervalTrigger(minutes=30),
+            id="flood_alert_check",
+            name="Flood Risk Alert Checker",
+            replace_existing=True,
+            max_instances=1,
+        )
+        scheduler.start()
+        print("[Scheduler] Started — flood alerts will check every 30 minutes.")
+
+
+def stop_scheduler():
+    """Gracefully stop the scheduler on app shutdown."""
+    scheduler = get_scheduler()
+    if scheduler.running:
+        scheduler.shutdown(wait=False)
+        print("[Scheduler] Stopped.")

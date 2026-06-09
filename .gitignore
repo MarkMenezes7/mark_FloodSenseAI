@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Environment variables — NEVER commit these
+backend/.env
+frontend/.env
+frontend/.env.local
+
+# Node
+node_modules/
+frontend/dist/
+frontend/build/
+
+# IDE
+.vscode/settings.json
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# ML Models - committed to repo so Render can use them
+# (6.6MB, acceptable for deployment)
+
+# Logs
+*.log
