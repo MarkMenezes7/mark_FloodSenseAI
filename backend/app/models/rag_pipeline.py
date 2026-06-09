@@ -73,7 +73,7 @@ def check_live_flood_risk(location_name: str) -> dict:
 
 # 2. Configure model to use tools
 model = genai.GenerativeModel(
-    model_name="gemini-2.5-flash",
+    model_name="gemini-1.5-flash",
     tools=[check_live_flood_risk]
 )
 
