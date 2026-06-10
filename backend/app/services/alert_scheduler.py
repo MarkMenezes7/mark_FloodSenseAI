@@ -116,7 +116,7 @@ async def run_alert_check():
                     f"🌡️ Temp: {current['temperature']}°C\n"
                     f"💨 Wind: {current['wind_speed']} m/s\n\n"
                     f"{'⚠️ EVACUATE or move to higher ground immediately!' if score >= 75 else '⚠️ Take precautions — monitor the situation closely.'}\n\n"
-                    f"🌐 Full report: floodsenseai.vercel.app\n"
+                    f"🌐 Full report: https://floodsenseai-frontend.vercel.app\n"
                     f"Reply *unsubscribe* to stop alerts."
                 )
                 await _send_whatsapp_async(phone, msg)

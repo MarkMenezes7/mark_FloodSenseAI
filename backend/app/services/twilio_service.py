@@ -46,7 +46,7 @@ async def handle_incoming_whatsapp(
                 f"🌡️ Temp: {current['temperature']}°C\n"
                 f"💨 Wind: {current['wind_speed']} m/s\n\n"
                 f"{'⚠️ ALERT: Take precautions immediately!' if score > 70 else '✅ Conditions are currently manageable.'}\n\n"
-                f"🌐 Full report: floodsenseai.vercel.app"
+                f"🌐 Full report: https://floodsenseai-frontend.vercel.app"
             )
         except Exception as e:
             return f"❌ Could not fetch flood data for your location. Please try again. Error: {str(e)}"
@@ -70,7 +70,7 @@ async def handle_incoming_whatsapp(
             "📊 'risk' → Current risk summary\n"
             "🔔 'subscribe' → Get automatic alerts\n"
             "❌ 'unsubscribe' → Stop alerts\n\n"
-            "🌐 Full dashboard: floodsenseai.vercel.app"
+            "🌐 Full dashboard: https://floodsenseai-frontend.vercel.app"
         )
     elif "subscribe" in body_lower:
         return (
@@ -107,7 +107,7 @@ async def handle_incoming_whatsapp(
                     f"🌧️ Rainfall: {current['rainfall_1h']} mm/hr\n"
                     f"💧 Humidity: {current['humidity']}%\n"
                     f"🌡️ Temp: {current['temperature']}°C\n\n"
-                    f"🌐 floodsenseai.vercel.app"
+                    f"🌐 https://floodsenseai-frontend.vercel.app"
                 )
         except:
             pass
