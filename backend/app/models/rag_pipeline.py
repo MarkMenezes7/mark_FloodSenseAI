@@ -161,25 +161,62 @@ async def get_rag_response(
         level = "CRITICAL" if risk_score >= 75 else "HIGH" if risk_score >= 55 else "MODERATE" if risk_score >= 35 else "LOW"
         location_context += f"\nCurrent flood risk at their GPS location: {level} ({risk_score:.0f}%)"
 
-    # -- Step 1: Detect location mentions in the message and pre-fetch live data --
-    # This avoids complex tool-call round-trips that can hang on the free tier.
-    location_keywords = message.lower()
+    # -- Step 1: Detect what kind of question the user is asking --
     live_data_context = ""
+    msg_lower = message.lower()
 
-    # Check if the message is asking about a specific place
-    # Use the Gemini model in a simple mode first to extract location
-    try:
-        extract_model = genai.GenerativeModel(model_name="gemini-2.5-flash-lite")
-        extract_response = await extract_model.generate_content_async(
-            f"Extract the city/neighborhood/location name from this message (reply with ONLY the location name, or 'NONE' if no specific location is mentioned): '{message}'"
-        )
-        extracted_location = extract_response.text.strip().strip('"').strip("'")
+    # Check A: Is the user asking a "which city is highest / most rain globally" type question?
+    is_global_scan_question = any(kw in msg_lower for kw in [
+        "which city", "highest flood", "highest risk", "most rain", "most rainfall",
+        "where is it raining", "where is flooding", "top city", "worst city",
+        "highest rainfall", "where flood", "maximum risk", "most dangerous"
+    ])
 
-        if extracted_location and extracted_location.upper() != "NONE" and len(extracted_location) < 60:
-            # Pre-fetch live weather for this location
-            weather_data = check_live_flood_risk(extracted_location)
-            if "error" not in weather_data:
-                live_data_context = f"""
+    if is_global_scan_question:
+        # Scan a representative set of cities with our ML model
+        scan_cities = [
+            "Mumbai", "Chennai", "Kolkata", "Guwahati", "Kochi",
+            "Brussels", "London", "Miami", "Lagos", "Singapore",
+            "Chittagong", "Dhaka", "Manila", "Jakarta", "Bangkok",
+            "New Orleans", "Houston", "Ho Chi Minh City", "Colombo", "Bergen"
+        ]
+        city_results = []
+        for city in scan_cities:
+            data = check_live_flood_risk(city)
+            if "error" not in data:
+                city_results.append({
+                    "city": data["location_matched"],
+                    "score": data["flood_risk_score"],
+                    "level": data["flood_risk_level"],
+                    "rain": data["rainfall_past_3h_mm"],
+                    "humidity": data["humidity_percent"],
+                    "weather": data["current_weather"],
+                })
+        city_results.sort(key=lambda x: -x["score"])
+        top5 = city_results[:5]
+        scan_text = "\n".join([
+            f"  {i+1}. {r['city']} — {r['level']} ({r['score']}%) | Rain: {r['rain']} mm/3h | Humidity: {r['humidity']}% | {r['weather']}"
+            for i, r in enumerate(top5)
+        ])
+        live_data_context = f"""
+LIVE REAL-TIME GLOBAL SCAN (20 cities checked right now using ML flood model):
+Top 5 highest flood risk cities at this moment:
+{scan_text}
+"""
+
+    else:
+        # Check B: Is the user asking about a specific named location?
+        try:
+            extract_model = genai.GenerativeModel(model_name="gemini-2.5-flash-lite")
+            extract_response = await extract_model.generate_content_async(
+                f"Extract the city/neighborhood/location name from this message (reply with ONLY the location name, or 'NONE' if no specific location is mentioned): '{message}'"
+            )
+            extracted_location = extract_response.text.strip().strip('"').strip("'")
+
+            if extracted_location and extracted_location.upper() != "NONE" and len(extracted_location) < 60:
+                weather_data = check_live_flood_risk(extracted_location)
+                if "error" not in weather_data:
+                    live_data_context = f"""
 LIVE REAL-TIME WEATHER DATA (fetched right now for '{extracted_location}'):
 - Location matched: {weather_data['location_matched']}
 - Current weather: {weather_data['current_weather']}
@@ -190,8 +227,8 @@ LIVE REAL-TIME WEATHER DATA (fetched right now for '{extracted_location}'):
 - Flood Risk Level: {weather_data['flood_risk_level']}
 - Safety Advice: {weather_data['safety_advice']}
 """
-    except Exception:
-        pass  # If extraction fails, just answer from knowledge base
+        except Exception:
+            pass  # Fall back to knowledge base only
 
     prompt = f"""You are FloodSenseAI Assistant, an expert AI system for flood risk awareness and disaster preparedness.
 You help users understand flood risks, safety procedures, and emergency response.
