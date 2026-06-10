@@ -161,31 +161,63 @@ async def get_rag_response(
         level = "CRITICAL" if risk_score >= 75 else "HIGH" if risk_score >= 55 else "MODERATE" if risk_score >= 35 else "LOW"
         location_context += f"\nCurrent flood risk at their GPS location: {level} ({risk_score:.0f}%)"
 
+    # -- Step 1: Detect location mentions in the message and pre-fetch live data --
+    # This avoids complex tool-call round-trips that can hang on the free tier.
+    location_keywords = message.lower()
+    live_data_context = ""
+
+    # Check if the message is asking about a specific place
+    # Use the Gemini model in a simple mode first to extract location
+    try:
+        extract_model = genai.GenerativeModel(model_name="gemini-2.5-flash-lite")
+        extract_response = await extract_model.generate_content_async(
+            f"Extract the city/neighborhood/location name from this message (reply with ONLY the location name, or 'NONE' if no specific location is mentioned): '{message}'"
+        )
+        extracted_location = extract_response.text.strip().strip('"').strip("'")
+
+        if extracted_location and extracted_location.upper() != "NONE" and len(extracted_location) < 60:
+            # Pre-fetch live weather for this location
+            weather_data = check_live_flood_risk(extracted_location)
+            if "error" not in weather_data:
+                live_data_context = f"""
+LIVE REAL-TIME WEATHER DATA (fetched right now for '{extracted_location}'):
+- Location matched: {weather_data['location_matched']}
+- Current weather: {weather_data['current_weather']}
+- Temperature: {weather_data['temperature_celsius']}°C
+- Humidity: {weather_data['humidity_percent']}%
+- Rainfall (past 3h): {weather_data['rainfall_past_3h_mm']} mm
+- Flood Risk Score: {weather_data['flood_risk_score']}%
+- Flood Risk Level: {weather_data['flood_risk_level']}
+- Safety Advice: {weather_data['safety_advice']}
+"""
+    except Exception:
+        pass  # If extraction fails, just answer from knowledge base
+
     prompt = f"""You are FloodSenseAI Assistant, an expert AI system for flood risk awareness and disaster preparedness.
 You help users understand flood risks, safety procedures, and emergency response.
 
 KNOWLEDGE BASE:
 {FLOOD_KNOWLEDGE}
 {location_context}
+{live_data_context}
 
 USER QUESTION: {message}
 
 Instructions:
-1. If the user is asking about the flood risk or weather of a specific location (e.g., Borivali, Pune, Texas), you MUST use the `check_live_flood_risk` tool to get the real-time data before answering. Do not guess. Do not say "it's not in my knowledge base".
-2. If the user's location has HIGH or CRITICAL risk, emphasize safety urgently and advise against traveling there.
-3. If a user asks if they should visit a place, tell them it IS safe to visit if the flood risk is LOW. Do not tell them to avoid a place just because it isn't raining!
-4. Be concise, clear, and helpful.
+1. If LIVE REAL-TIME WEATHER DATA is provided above, use it to give a specific, accurate answer. Do NOT say you cannot provide real-time data.
+2. If the live data shows LOW flood risk, tell the user the place is safe to visit from a flood perspective.
+3. If the live data shows HIGH or CRITICAL risk, strongly warn the user.
+4. Be concise, friendly, and helpful. Answer the user's actual question directly.
 5. Use emojis sparingly for readability.
 6. If asked something outside flood/weather/disaster topics, gently redirect.
-7. CRITICAL: You DO have access to real-time live weather data through your tools. NEVER say "I cannot provide real-time weather updates" or anything similar. Just directly provide the live data you received from the tool.
 """
 
     try:
-        # We use start_chat to enable automatic tool calling
-        chat = model.start_chat(enable_automatic_function_calling=True)
-        response = await chat.send_message_async(prompt)
+        simple_model = genai.GenerativeModel(model_name="gemini-2.5-flash-lite")
+        response = await simple_model.generate_content_async(prompt)
         return response.text
     except Exception as e:
         if "429" in str(e):
-            return "⚠️ The AI is currently busy (Rate Limit Exceeded). Please try again in about 30 seconds."
+            return "⚠️ The AI is currently busy. Please try again in about 30 seconds."
         return f"I'm having trouble connecting to the AI right now. Please try again in a moment. For emergencies, call 112. Error: {str(e)}"
+
