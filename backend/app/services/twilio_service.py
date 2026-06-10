@@ -52,6 +52,7 @@ async def handle_incoming_whatsapp(
             return f"❌ Could not fetch flood data for your location. Please try again. Error: {str(e)}"
 
     # Text message handling
+    body_lower = body.lower()
     body_words = set(body_lower.split())
     if body_words & {"hi", "hello", "hey", "start"}:
         return (
