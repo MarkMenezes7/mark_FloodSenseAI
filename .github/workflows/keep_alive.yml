@@ -1,0 +1,22 @@
+name: Keep Render Alive
+
+on:
+  schedule:
+    # Runs every 10 minutes — prevents Render free tier from spinning down
+    - cron: '*/10 * * * *'
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping FloodSenseAI Backend
+        run: |
+          echo "Pinging backend to keep Render awake..."
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://mark-floodsenseai.onrender.com/health)
+          echo "Response status: $STATUS"
+          if [ "$STATUS" = "200" ]; then
+            echo "✅ Backend is alive!"
+          else
+            echo "⚠️ Backend returned status $STATUS"
+          fi

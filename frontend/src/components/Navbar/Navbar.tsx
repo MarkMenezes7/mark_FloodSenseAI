@@ -25,7 +25,7 @@ export default function Navbar() {
   return (
     <>
       <nav className="navbar">
-        <div className="navbar-inner container">
+        <div className="navbar-inner">
 
           {/* LEFT — Logo */}
           <NavLink to="/" className="navbar-logo" id="navbar-logo">

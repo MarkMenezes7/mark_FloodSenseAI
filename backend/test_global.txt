@@ -1,0 +1,3 @@
+The city with the highest flood risk right now is **Singapore** with a LOW risk level of 7.5%.
+
+Currently, all the top 5 cities checked have a LOW flood risk, indicating they are safe to visit from a flood perspective.

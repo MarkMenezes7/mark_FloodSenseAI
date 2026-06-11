@@ -223,6 +223,8 @@ export default function CheckRisk() {
                 riskScore={risk.risk_score}
                 riskLevel={risk.risk_level}
                 riskColor={risk.color}
+                infrastructureMultiplier={risk.infrastructure_multiplier}
+                infrastructureQuality={risk.infrastructure_quality}
               />
             )}
 

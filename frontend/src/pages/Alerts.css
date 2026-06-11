@@ -13,6 +13,7 @@
 }
 
 /* ── Subscription Form Card ──────────────────────────────────────── */
+.sub-form-card { padding: var(--space-xl); }
 .sub-form-card h3 {
   font-size: 1.2rem;
   font-weight: 700;
@@ -125,7 +126,7 @@
 .alerts-right { display: flex; flex-direction: column; gap: var(--space-lg); }
 
 /* WhatsApp quick start card */
-.wa-quick-card { background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 1px solid #86efac; }
+.wa-quick-card { padding: var(--space-xl); background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 1px solid #86efac; }
 .wa-quick-card h4 { font-size: 1rem; font-weight: 700; color: #15803d; margin-bottom: var(--space-sm); }
 .wa-quick-card p  { font-size: 0.875rem; color: #166534; margin-bottom: var(--space-md); }
 .wa-full-btn { width: 100%; justify-content: center; gap: 8px; }
@@ -155,6 +156,7 @@
 .step-card p  { font-size: 0.8rem; color: var(--text-muted); margin: 0; }
 
 /* Commands */
+.commands-card { padding: var(--space-xl); }
 .commands-card h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: var(--space-md); color: var(--text-primary); }
 .commands-list { display: flex; flex-direction: column; gap: var(--space-sm); }
 .cmd-row { display: flex; align-items: center; gap: var(--space-md); }

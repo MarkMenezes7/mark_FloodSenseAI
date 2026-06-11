@@ -7,7 +7,7 @@ export default function Footer() {
   const year = new Date().getFullYear()
   return (
     <footer className="site-footer">
-      <div className="container footer-grid">
+      <div className="footer-grid">
 
         {/* Brand */}
         <div className="footer-brand">
@@ -66,7 +66,7 @@ export default function Footer() {
       </div>
 
       <div className="footer-bottom">
-        <div className="container footer-bottom-inner">
+        <div className="footer-bottom-inner">
           <p>© {year} FloodSenseAI · Built with ❤️ for community safety</p>
           <p>Powered by Google Gemini AI · OpenWeatherMap · Neon PostgreSQL</p>
         </div>

@@ -1,0 +1,5 @@
+Hello! Based on the latest weather information for Delhi:
+
+The sky is clear and the temperature is 41.19°C with 18% humidity. There has been no rainfall in the past 3 hours. The current flood risk score is 3.7%, which is a **LOW** risk level.
+
+So, yes, Delhi is safe to visit today from a flood risk perspective. It is not rainy there right now! 😊

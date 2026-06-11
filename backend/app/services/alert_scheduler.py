@@ -71,9 +71,16 @@ async def run_alert_check():
 
     async with pool.acquire() as conn:
         rows = await conn.fetch(
-            "SELECT phone_number, latitude, longitude, location_name, risk_threshold "
+            "SELECT phone_number, latitude, longitude, location_name, risk_threshold, last_alerted_at "
             "FROM alert_subscriptions WHERE latitude IS NOT NULL AND longitude IS NOT NULL"
         )
+        # Ensure last_alerted_at column exists (add it if this is the first run after upgrade)
+        try:
+            await conn.execute(
+                "ALTER TABLE alert_subscriptions ADD COLUMN IF NOT EXISTS last_alerted_at TIMESTAMP DEFAULT NULL"
+            )
+        except Exception:
+            pass  # Column already exists
 
     if not rows:
         print("[Scheduler] No subscribers with location data. Skipping.")
@@ -98,7 +105,8 @@ async def run_alert_check():
                 wind_speed=current["wind_speed"],
                 river_level=0,
                 lat=lat,
-                lon=lon
+                lon=lon,
+                location_name=loc_name
             )
             score = risk["risk_score"]
             level = risk["risk_level"]
@@ -106,7 +114,22 @@ async def run_alert_check():
             print(f"[Scheduler] {loc_name}: {level} ({score:.0f}%) — threshold {threshold}%")
 
             if score >= threshold:
+                # --- Issue 8 Fix: 2-hour cooldown to prevent alert spam ---
+                from datetime import datetime, timezone, timedelta
+                last_alerted = row.get("last_alerted_at")
+                now_utc = datetime.now(timezone.utc)
+                cooldown_hours = 2
+                if last_alerted:
+                    # Make last_alerted timezone-aware if it isn't
+                    if last_alerted.tzinfo is None:
+                        last_alerted = last_alerted.replace(tzinfo=timezone.utc)
+                    time_since = now_utc - last_alerted
+                    if time_since < timedelta(hours=cooldown_hours):
+                        print(f"[Scheduler] Skipping {loc_name} — alerted {time_since.seconds//60}min ago (cooldown: {cooldown_hours}h)")
+                        continue
+
                 emoji = "🔴" if score >= 75 else "🟠"
+                infra_note = f"\n⚠️ Note: {loc_name} has {risk.get('infrastructure_quality', 'average drainage')}."
                 msg = (
                     f"{emoji} *FloodSenseAI ALERT*\n\n"
                     f"Flood risk at *{loc_name}* has reached "
@@ -114,12 +137,20 @@ async def run_alert_check():
                     f"🌧️ Rainfall: {current['rainfall_1h']} mm/hr\n"
                     f"💧 Humidity: {current['humidity']}%\n"
                     f"🌡️ Temp: {current['temperature']}°C\n"
-                    f"💨 Wind: {current['wind_speed']} m/s\n\n"
+                    f"💨 Wind: {current['wind_speed']} m/s\n"
+                    f"{infra_note}\n\n"
                     f"{'⚠️ EVACUATE or move to higher ground immediately!' if score >= 75 else '⚠️ Take precautions — monitor the situation closely.'}\n\n"
                     f"🌐 Full report: https://floodsenseai-frontend.vercel.app\n"
                     f"Reply *unsubscribe* to stop alerts."
                 )
-                await _send_whatsapp_async(phone, msg)
+                sent = await _send_whatsapp_async(phone, msg)
+                if sent:
+                    # Update last_alerted_at so we don't spam again for 2 hours
+                    async with pool.acquire() as conn2:
+                        await conn2.execute(
+                            "UPDATE alert_subscriptions SET last_alerted_at = $1 WHERE phone_number = $2",
+                            now_utc, phone
+                        )
 
         except Exception as exc:
             print(f"[Scheduler] Error checking {phone}: {exc}")
