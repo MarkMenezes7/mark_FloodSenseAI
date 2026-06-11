@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Query, Request
 from app.services.weather_service import get_weather_by_coords, get_weather_by_city
-from app.main import limiter
+from app.limiter import limiter
 
 router = APIRouter()
 

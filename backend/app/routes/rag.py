@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request
 from pydantic import BaseModel
 from app.models.rag_pipeline import get_rag_response
-from app.main import limiter
+from app.limiter import limiter
 
 router = APIRouter()
 
