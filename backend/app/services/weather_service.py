@@ -47,8 +47,12 @@ async def get_weather_by_coords(lat: float, lon: float) -> dict:
             "pressure": weather["main"]["pressure"],
             "wind_speed": weather["wind"]["speed"],
             "wind_direction": weather["wind"].get("deg", 0),
-            "rainfall_1h": weather.get("rain", {}).get("1h", 0),
-            "rainfall_3h": weather.get("rain", {}).get("3h", 0),
+            # OWM gives rain.1h = mm fallen in the last 1 hour.
+            # Our flood predictor thresholds use mm/3h (IMD standard).
+            # We normalise here so every downstream caller uses the same unit.
+            "rainfall_1h":  weather.get("rain", {}).get("1h", 0),          # raw OWM field (mm/1h)
+            "rainfall_3h":  weather.get("rain", {}).get("3h",              # prefer 3h if OWM gives it
+                            weather.get("rain", {}).get("1h", 0) * 3),     # else estimate: 1h × 3
             "description": weather["weather"][0]["description"],
             "icon": weather["weather"][0]["icon"],
             "visibility": weather.get("visibility", 10000)

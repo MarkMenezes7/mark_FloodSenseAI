@@ -350,35 +350,47 @@ INFRASTRUCTURE_DB = {
 
 def get_infrastructure_multiplier(location_name: str) -> float:
     """
-    Look up the infrastructure/drainage multiplier for a location.
-    Searches the DB by checking if any known key is a substring of the location name,
-    or if the location name is a substring of any known key.
+    Look up the infrastructure/drainage multiplier for a location using fuzzy matching.
+    Uses rapidfuzz so that spelling variants from OWM (e.g. "Nallasopara" vs "Nalasopara")
+    still match correctly.
 
-    Returns 1.2 (average) if location is unknown.
+    Returns 1.2 (average urban) if location is unknown or similarity is too low.
     """
     if not location_name:
         return 1.2
 
     name = location_name.lower().strip()
 
-    # Exact match first
+    # 1. Exact match — fastest path
     if name in INFRASTRUCTURE_DB:
         return INFRASTRUCTURE_DB[name]
 
-    # Partial match — check if any key is contained in the name or vice versa
-    best_match = None
-    best_len = 0
-    for key, multiplier in INFRASTRUCTURE_DB.items():
-        if key in name or name in key:
-            # Prefer the longest matching key (most specific)
-            if len(key) > best_len:
-                best_match = multiplier
-                best_len = len(key)
+    # 2. Fuzzy match using rapidfuzz
+    try:
+        from rapidfuzz import process, fuzz
+        # Extract best matching key from our DB
+        result = process.extractOne(
+            name,
+            INFRASTRUCTURE_DB.keys(),
+            scorer=fuzz.token_set_ratio,  # handles word reordering and partial matches
+            score_cutoff=80              # minimum 80% similarity required
+        )
+        if result:
+            matched_key, score, _ = result
+            return INFRASTRUCTURE_DB[matched_key]
+    except ImportError:
+        # rapidfuzz not installed — fall back to substring matching
+        best_match = None
+        best_len = 0
+        for key, multiplier in INFRASTRUCTURE_DB.items():
+            if key in name or name in key:
+                if len(key) > best_len:
+                    best_match = multiplier
+                    best_len = len(key)
+        if best_match is not None:
+            return best_match
 
-    if best_match is not None:
-        return best_match
-
-    # Default — unknown location, use average urban drainage
+    # 3. Default — unknown location, assume average urban drainage
     return 1.2
 
 

@@ -99,7 +99,7 @@ async def run_alert_check():
             weather = await get_weather_by_coords(lat, lon)
             current = weather["current"]
             risk = predict_flood_risk(
-                rainfall=current["rainfall_1h"],
+                rainfall=current["rainfall_3h"],   # mm/3h — correct unit for IMD thresholds
                 humidity=current["humidity"],
                 temperature=current["temperature"],
                 wind_speed=current["wind_speed"],
@@ -114,18 +114,17 @@ async def run_alert_check():
             print(f"[Scheduler] {loc_name}: {level} ({score:.0f}%) — threshold {threshold}%")
 
             if score >= threshold:
-                # --- Issue 8 Fix: 2-hour cooldown to prevent alert spam ---
+                # Cooldown check
                 from datetime import datetime, timezone, timedelta
                 last_alerted = row.get("last_alerted_at")
                 now_utc = datetime.now(timezone.utc)
                 cooldown_hours = 2
                 if last_alerted:
-                    # Make last_alerted timezone-aware if it isn't
                     if last_alerted.tzinfo is None:
                         last_alerted = last_alerted.replace(tzinfo=timezone.utc)
                     time_since = now_utc - last_alerted
                     if time_since < timedelta(hours=cooldown_hours):
-                        print(f"[Scheduler] Skipping {loc_name} — alerted {time_since.seconds//60}min ago (cooldown: {cooldown_hours}h)")
+                        print(f"[Scheduler] Skipping {loc_name} — alerted {time_since.seconds//60}min ago")
                         continue
 
                 emoji = "🔴" if score >= 75 else "🟠"
@@ -145,12 +144,38 @@ async def run_alert_check():
                 )
                 sent = await _send_whatsapp_async(phone, msg)
                 if sent:
-                    # Update last_alerted_at so we don't spam again for 2 hours
                     async with pool.acquire() as conn2:
                         await conn2.execute(
                             "UPDATE alert_subscriptions SET last_alerted_at = $1 WHERE phone_number = $2",
                             now_utc, phone
                         )
+
+            else:
+                # --- All-clear alert: notify user when risk drops back to safe ---
+                from datetime import datetime, timezone, timedelta
+                last_alerted = row.get("last_alerted_at")
+                if last_alerted:
+                    if last_alerted.tzinfo is None:
+                        last_alerted = last_alerted.replace(tzinfo=timezone.utc)
+                    now_utc = datetime.now(timezone.utc)
+                    # Only send all-clear if we alerted them recently (within 6h) — they're still on alert
+                    if (now_utc - last_alerted) < timedelta(hours=6):
+                        msg = (
+                            f"✅ *FloodSenseAI: All Clear*\n\n"
+                            f"Flood risk at *{loc_name}* has dropped to "
+                            f"*{level} ({score:.0f}%)*\n"
+                            f"Conditions are now safe at your location. 🙏\n\n"
+                            f"🌐 https://floodsenseai-frontend.vercel.app"
+                        )
+                        sent = await _send_whatsapp_async(phone, msg)
+                        if sent:
+                            # Reset last_alerted_at so we don't send another all-clear immediately
+                            async with pool.acquire() as conn2:
+                                await conn2.execute(
+                                    "UPDATE alert_subscriptions SET last_alerted_at = NULL WHERE phone_number = $1",
+                                    phone
+                                )
+                            print(f"[Scheduler] All-clear sent to {phone} for {loc_name}")
 
         except Exception as exc:
             print(f"[Scheduler] Error checking {phone}: {exc}")

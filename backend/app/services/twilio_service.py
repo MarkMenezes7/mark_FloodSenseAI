@@ -26,7 +26,7 @@ async def handle_incoming_whatsapp(
             current = weather["current"]
             location = weather["location"]
             risk = predict_flood_risk(
-                rainfall=current["rainfall_1h"],
+                rainfall=current["rainfall_3h"],   # mm/3h — correct unit for IMD thresholds
                 humidity=current["humidity"],
                 temperature=current["temperature"],
                 wind_speed=current["wind_speed"],
@@ -104,13 +104,14 @@ async def handle_incoming_whatsapp(
                 current = weather["current"]
                 location = weather["location"]
                 risk = predict_flood_risk(
-                    rainfall=current["rainfall_1h"],
+                    rainfall=current["rainfall_3h"],   # mm/3h — correct unit for IMD thresholds
                     humidity=current["humidity"],
                     temperature=current["temperature"],
                     wind_speed=current["wind_speed"],
                     river_level=0,
                     lat=location["lat"],
-                    lon=location["lon"]
+                    lon=location["lon"],
+                    location_name=location["name"]
                 )
                 score = risk["risk_score"]
                 emoji = "🔴" if score > 70 else "🟡" if score > 40 else "🟢"
