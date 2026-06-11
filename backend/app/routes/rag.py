@@ -1,6 +1,7 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from pydantic import BaseModel
 from app.models.rag_pipeline import get_rag_response
+from app.main import limiter
 
 router = APIRouter()
 
@@ -12,13 +13,14 @@ class ChatRequest(BaseModel):
     current_risk_score: float | None = None
 
 @router.post("/chat")
-async def chat(request: ChatRequest):
-    """RAG-powered flood assistant chat endpoint"""
+@limiter.limit("10/minute;100/day")
+async def chat(request: Request, body: ChatRequest):
+    """RAG-powered flood assistant chat endpoint — rate limited to 10/min, 100/day per IP"""
     response = await get_rag_response(
-        message=request.message,
-        lat=request.latitude,
-        lon=request.longitude,
-        location_name=request.location_name,
-        risk_score=request.current_risk_score
+        message=body.message,
+        lat=body.latitude,
+        lon=body.longitude,
+        location_name=body.location_name,
+        risk_score=body.current_risk_score
     )
     return {"response": response, "success": True}

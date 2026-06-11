@@ -1,4 +1,5 @@
 import os
+import re
 from twilio.rest import Client
 from dotenv import load_dotenv
 
@@ -84,10 +85,21 @@ async def handle_incoming_whatsapp(
     elif "unsubscribe" in body_lower:
         return "✅ You have been unsubscribed from FloodSenseAI alerts. Stay safe! 🙏"
     else:
+        # Sanitize city name input before passing to external API
+        # Allow only safe characters: letters, numbers, spaces, commas, dots, hyphens
+        city_input = re.sub(r'[^\w\s,.\'\-]', '', body).strip()[:100]
+        if not city_input:
+            return (
+                "❓ I didn't understand that.\n\n"
+                "Try:\n"
+                "📍 Share your location (Tap 📎 > Location)\n"
+                "🌆 Type a city name (e.g. Mumbai)\n"
+                "ℹ️ Type *!help* for all commands"
+            )
         # Try treating it as a city name
         try:
             from app.services.weather_service import get_weather_by_city
-            weather = await get_weather_by_city(body)
+            weather = await get_weather_by_city(city_input)
             if "error" not in weather:
                 current = weather["current"]
                 location = weather["location"]

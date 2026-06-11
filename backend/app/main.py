@@ -1,8 +1,16 @@
-from fastapi import FastAPI
+import os
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 from app.routes import weather, risk, alerts, rag, whatsapp
 from app.db.database import create_tables
 from app.services.alert_scheduler import start_scheduler, stop_scheduler
+
+# Rate limiter — keyed by IP address
+limiter = Limiter(key_func=get_remote_address)
 
 app = FastAPI(
     title="FloodSenseAI API",
@@ -10,12 +18,21 @@ app = FastAPI(
     version="2.0.0"
 )
 
-# CORS — allow frontend to call backend
+# Rate limiter setup
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# CORS — only allow our Vercel frontend (not all origins)
+ALLOWED_ORIGINS = [
+    "https://floodsenseai-frontend.vercel.app",
+    "http://localhost:5173",   # local dev
+    "http://localhost:3000",   # local dev alt
+]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
 
