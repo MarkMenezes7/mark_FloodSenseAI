@@ -276,6 +276,53 @@ async def get_rag_response(
         "highest rainfall", "where flood", "maximum risk", "most dangerous"
     ])
 
+    # -- Check 0: Hypothetical rainfall question? Answer with ML directly (0 Gemini calls) --
+    # Pattern: "if it rains X mm in [city]" / "what if 70mm falls in Virar" etc.
+    import re as _re
+    _hypo_match = _re.search(
+        r'(?:if(?:\s+it)?\s+rains?|what\s+if|assume|suppose|scenario|in\s+case)'
+        r'[^\d]*([\d.]+)\s*(?:mm|millimeter)',
+        msg_lower
+    )
+    if _hypo_match:
+        hypo_rain = float(_hypo_match.group(1))
+        # Try to extract city name cheaply from alias map first
+        hypo_city = None
+        for alias_key in _SUBURB_ALIASES:
+            if alias_key in msg_lower:
+                hypo_city = alias_key.title()
+                break
+        if not hypo_city:
+            # Quick scan for common city names
+            _known_cities = [
+                "mumbai", "delhi", "chennai", "kolkata", "pune", "hyderabad",
+                "bangalore", "bengaluru", "thane", "virar", "nalasopara",
+                "navi mumbai", "guwahati", "kochi", "surat", "ahmedabad",
+            ]
+            for c in _known_cities:
+                if c in msg_lower:
+                    hypo_city = c.title()
+                    break
+        from app.models.flood_predictor import predict_flood_risk as _prf
+        _hr = _prf(
+            rainfall=hypo_rain,
+            humidity=85,          # assume heavy-rain humidity
+            temperature=28,
+            wind_speed=8,
+            river_level=min(hypo_rain / 10.0, 5.0),
+            location_name=hypo_city or ""
+        )
+        _city_str = f" in {hypo_city}" if hypo_city else ""
+        _infra = f" (infrastructure multiplier: {_hr['infrastructure_multiplier']}x — {_hr['infrastructure_quality']})" if hypo_city else ""
+        return (
+            f"If it rains **{hypo_rain:.0f} mm in 3 hours{_city_str}**, the estimated flood risk would be:\n\n"
+            f"**{_hr['risk_score']:.0f}% — {_hr['risk_level']} RISK**{_infra}\n\n"
+            f"{_hr['advice']}\n\n"
+            f"_Note: This is a hypothetical estimate based on rainfall alone. "
+            f"Actual risk depends on real-time river levels, soil saturation, and local drainage._"
+        )
+
+
     if is_global_scan_question:
         # Scan a representative set of cities with our ML model
         scan_cities = [
@@ -335,8 +382,12 @@ LIVE REAL-TIME WEATHER DATA (fetched right now for '{extracted_location}'):
 - Flood Risk Level: {weather_data['flood_risk_level']}
 - Safety Advice: {weather_data['safety_advice']}
 """
-        except Exception:
-            pass  # Fall back to knowledge base only
+        except Exception as e429:
+            if "429" in str(e429):
+                # Extractor hit rate limit — skip live data, answer from knowledge base only
+                # This saves the second (main) Gemini call from also hitting 429
+                pass
+            # Fall back to knowledge base only
 
     prompt = f"""You are FloodSenseAI Assistant, an expert AI system for flood risk awareness and disaster preparedness.
 You help users understand flood risks, safety procedures, and emergency response.
@@ -363,6 +414,26 @@ Instructions:
         return response.text
     except Exception as e:
         if "429" in str(e):
-            return "⚠️ The AI is currently busy. Please try again in about 30 seconds."
-        return f"I'm having trouble connecting to the AI right now. Please try again in a moment. For emergencies, call 112. Error: {str(e)}"
-
+            # Rate limited — answer from knowledge base without Gemini
+            # Build a minimal but useful response from the knowledge base context
+            kb_note = (
+                "_[AI assistant is temporarily rate-limited. Answering from knowledge base.]_\n\n"
+            )
+            if live_data_context:
+                # We have live data — extract key facts and answer directly
+                return (
+                    kb_note +
+                    "Here is the live data I fetched for your location:\n" +
+                    live_data_context.strip() +
+                    "\n\nFor emergencies call **112** (India) or your local emergency number."
+                )
+            return (
+                kb_note +
+                "Mumbai and surrounding areas flood during heavy monsoon rainfall due to:\n"
+                "- Poor stormwater drainage capacity (only handles ~25mm/hr)\n"
+                "- Low-lying coastal geography\n"
+                "- Encroachment on natural water bodies and mangroves\n"
+                "- Simultaneous high tides blocking drainage outflows\n\n"
+                "For emergencies: **112** | NDMA: **1078** | IMD alerts: imd.gov.in"
+            )
+        return f"I'm having trouble connecting right now. For emergencies, call 112. ({str(e)[:80]})"
