@@ -286,19 +286,21 @@ async def get_rag_response(
     )
     if _hypo_match:
         hypo_rain = float(_hypo_match.group(1))
-        # Try to extract city name cheaply from alias map first
+        # Extract city name — check longer names first to avoid "Mumbai" swallowing "Navi Mumbai"
         hypo_city = None
-        for alias_key in _SUBURB_ALIASES:
+        # Sort alias keys longest-first so multi-word suburbs match before single-word ones
+        for alias_key in sorted(_SUBURB_ALIASES.keys(), key=len, reverse=True):
             if alias_key in msg_lower:
                 hypo_city = alias_key.title()
                 break
         if not hypo_city:
-            # Quick scan for common city names
-            _known_cities = [
-                "mumbai", "delhi", "chennai", "kolkata", "pune", "hyderabad",
-                "bangalore", "bengaluru", "thane", "virar", "nalasopara",
-                "navi mumbai", "guwahati", "kochi", "surat", "ahmedabad",
-            ]
+            # Sorted longest-first: "navi mumbai" checked before "mumbai"
+            _known_cities = sorted([
+                "navi mumbai", "ho chi minh city", "bengaluru", "bangalore",
+                "hyderabad", "ahmedabad", "guwahati", "nalasopara", "virar",
+                "kolkata", "chennai", "mumbai", "delhi", "thane", "pune",
+                "kochi", "surat", "patna", "nagpur", "jaipur", "lucknow",
+            ], key=len, reverse=True)
             for c in _known_cities:
                 if c in msg_lower:
                     hypo_city = c.title()
