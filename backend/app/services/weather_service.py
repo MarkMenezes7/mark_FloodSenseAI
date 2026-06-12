@@ -55,7 +55,9 @@ async def get_weather_by_coords(lat: float, lon: float) -> dict:
                             weather.get("rain", {}).get("1h", 0) * 3),     # else estimate: 1h × 3
             "description": weather["weather"][0]["description"],
             "icon": weather["weather"][0]["icon"],
-            "visibility": weather.get("visibility", 10000)
+            "visibility": weather.get("visibility", 10000),
+            # Unix timestamp of OWM observation — used by frontend to show "data updated X min ago"
+            "data_timestamp": weather.get("dt", 0)
         },
         "forecast": [
             {

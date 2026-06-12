@@ -8,6 +8,8 @@ load_dotenv()
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY")
+# Read model name from env so future Google deprecations only need a Render env var update
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash-lite")
 genai.configure(api_key=GEMINI_API_KEY)
 
 # 1. Define the Tool for the AI
@@ -207,7 +209,7 @@ Top 5 highest flood risk cities at this moment:
     else:
         # Check B: Is the user asking about a specific named location?
         try:
-            extract_model = genai.GenerativeModel(model_name="gemini-2.5-flash-lite")
+            extract_model = genai.GenerativeModel(model_name=GEMINI_MODEL)
             extract_response = await extract_model.generate_content_async(
                 f"Extract the city/neighborhood/location name from this message (reply with ONLY the location name, or 'NONE' if no specific location is mentioned): '{message}'"
             )
@@ -250,7 +252,7 @@ Instructions:
 """
 
     try:
-        simple_model = genai.GenerativeModel(model_name="gemini-2.5-flash-lite")
+        simple_model = genai.GenerativeModel(model_name=GEMINI_MODEL)
         response = await simple_model.generate_content_async(prompt)
         return response.text
     except Exception as e:

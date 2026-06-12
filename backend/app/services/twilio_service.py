@@ -74,7 +74,9 @@ async def handle_incoming_whatsapp(
             "❌ 'unsubscribe' → Stop alerts\n\n"
             "🌐 Full dashboard: https://floodsenseai-frontend.vercel.app"
         )
-    elif "subscribe" in body_lower:
+    elif re.search(r'\bunsubscribe\b', body_lower):
+        return "✅ You have been unsubscribed from FloodSenseAI alerts. Stay safe! 🙏"
+    elif re.search(r'\bsubscribe\b', body_lower) and not re.search(r'\bunsubscribe\b', body_lower):
         return (
             "🔔 *Alert Subscription*\n\n"
             "To subscribe for automatic flood alerts:\n"
@@ -82,8 +84,6 @@ async def handle_incoming_whatsapp(
             "2. I'll alert you when risk exceeds 60%\n\n"
             "📍 Please share your location now!"
         )
-    elif "unsubscribe" in body_lower:
-        return "✅ You have been unsubscribed from FloodSenseAI alerts. Stay safe! 🙏"
     else:
         # Sanitize city name input before passing to external API
         # Allow only safe characters: letters, numbers, spaces, commas, dots, hyphens

@@ -1,7 +1,7 @@
 import os
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from app.limiter import limiter
@@ -32,6 +32,16 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
+
+# HTTPS redirect — enforced via X-Forwarded-Proto (Render terminates TLS at the edge)
+# Any request that arrives over plain HTTP is 301-redirected to HTTPS.
+@app.middleware("http")
+async def enforce_https(request: Request, call_next):
+    proto = request.headers.get("x-forwarded-proto", "https")
+    if proto == "http":
+        url = request.url.replace(scheme="https")
+        return RedirectResponse(url=str(url), status_code=301)
+    return await call_next(request)
 
 # Include routers
 app.include_router(weather.router,   prefix="/api/weather",   tags=["Weather"])

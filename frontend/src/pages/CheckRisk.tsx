@@ -5,10 +5,16 @@ import './CheckRisk.css'
 
 interface WeatherData {
   location: { name: string; country: string; lat: number; lon: number }
-  current: { temperature: number; feels_like: number; humidity: number; rainfall_1h: number; wind_speed: number; description: string; icon: string; pressure: number; visibility: number }
+  current: {
+    temperature: number; feels_like: number; humidity: number
+    rainfall_1h: number; rainfall_3h: number
+    wind_speed: number; description: string; icon: string
+    pressure: number; visibility: number
+    data_timestamp: number  // Unix epoch from OWM — for freshness display
+  }
   forecast: Array<{ time: string; temperature: number; rainfall: number; description: string; icon: string }>
 }
-interface RiskData { risk_score: number; risk_level: string; color: string; advice: string }
+interface RiskData { risk_score: number; risk_level: string; color: string; advice: string; infrastructure_multiplier?: number; infrastructure_quality?: string }
 
 export default function CheckRisk() {
   const [weather, setWeather] = useState<WeatherData | null>(null)
@@ -38,8 +44,9 @@ export default function CheckRisk() {
       setLocationName(`${weatherData.location.name}, ${weatherData.location.country}`)
       const riskRes = await fetch(
         `${API}/api/risk/predict?lat=${lat}&lon=${lon}` +
-        `&rainfall=${weatherData.current.rainfall_1h}&humidity=${weatherData.current.humidity}` +
-        `&temperature=${weatherData.current.temperature}&wind_speed=${weatherData.current.wind_speed}`
+        `&rainfall=${weatherData.current.rainfall_3h}&humidity=${weatherData.current.humidity}` +
+        `&temperature=${weatherData.current.temperature}&wind_speed=${weatherData.current.wind_speed}` +
+        `&location_name=${encodeURIComponent(weatherData.location.name)}`
       )
       setRisk(await riskRes.json())
       setLastUpdated(new Date())
@@ -83,8 +90,9 @@ export default function CheckRisk() {
       setLocationName(`${data.location.name}, ${data.location.country}`)
       const riskRes = await fetch(
         `${API}/api/risk/predict?lat=${data.location.lat}&lon=${data.location.lon}` +
-        `&rainfall=${data.current.rainfall_1h}&humidity=${data.current.humidity}` +
-        `&temperature=${data.current.temperature}&wind_speed=${data.current.wind_speed}`
+        `&rainfall=${data.current.rainfall_3h}&humidity=${data.current.humidity}` +
+        `&temperature=${data.current.temperature}&wind_speed=${data.current.wind_speed}` +
+        `&location_name=${encodeURIComponent(data.location.name)}`
       )
       setRisk(await riskRes.json())
       setLastUpdated(new Date())
@@ -156,6 +164,18 @@ export default function CheckRisk() {
               {lastUpdated && (
                 <span className="last-updated">🔄 Updated {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · auto-refreshes every 10 min</span>
               )}
+              {weather.current.data_timestamp > 0 && (() => {
+                const ageMin = Math.round((Date.now() / 1000 - weather.current.data_timestamp) / 60)
+                return (
+                  <span style={{
+                    fontSize: '0.72rem', color: ageMin > 30 ? '#f97316' : '#64748b',
+                    background: 'rgba(255,255,255,0.05)', borderRadius: 6,
+                    padding: '2px 8px', border: '1px solid #333'
+                  }}>
+                    📡 OWM data: {ageMin <= 1 ? 'just now' : `${ageMin} min ago`}
+                  </span>
+                )
+              })()}
             </div>
 
             {/* Main Results Grid */}
