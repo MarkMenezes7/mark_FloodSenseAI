@@ -34,11 +34,13 @@ app.add_middleware(
 )
 
 # HTTPS redirect — enforced via X-Forwarded-Proto (Render terminates TLS at the edge)
-# Any request that arrives over plain HTTP is 301-redirected to HTTPS.
+# IMPORTANT: Twilio webhook is excluded — HTTP 301 converts POST→GET, breaking the bot.
+# The webhook URL must be set to https:// directly in Twilio Console instead.
 @app.middleware("http")
 async def enforce_https(request: Request, call_next):
     proto = request.headers.get("x-forwarded-proto", "https")
-    if proto == "http":
+    is_twilio_webhook = request.url.path.startswith("/api/whatsapp/webhook")
+    if proto == "http" and not is_twilio_webhook:
         url = request.url.replace(scheme="https")
         return RedirectResponse(url=str(url), status_code=301)
     return await call_next(request)
