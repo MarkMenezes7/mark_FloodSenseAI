@@ -313,13 +313,13 @@ async def get_rag_response(
             location_name=hypo_city or ""
         )
         _city_str = f" in {hypo_city}" if hypo_city else ""
-        _infra = f" (infrastructure multiplier: {_hr['infrastructure_multiplier']}x — {_hr['infrastructure_quality']})" if hypo_city else ""
+        _infra = f" ({_hr['infrastructure_multiplier']}x multiplier — {_hr['infrastructure_quality']})" if hypo_city else ""
         return (
-            f"If it rains **{hypo_rain:.0f} mm in 3 hours{_city_str}**, the estimated flood risk would be:\n\n"
-            f"**{_hr['risk_score']:.0f}% — {_hr['risk_level']} RISK**{_infra}\n\n"
+            f"If it rains {hypo_rain:.0f} mm in 3 hours{_city_str}, the estimated flood risk would be:\n\n"
+            f"{_hr['risk_score']:.0f}% — {_hr['risk_level']} RISK{_infra}\n\n"
             f"{_hr['advice']}\n\n"
-            f"_Note: This is a hypothetical estimate based on rainfall alone. "
-            f"Actual risk depends on real-time river levels, soil saturation, and local drainage._"
+            f"Note: This is a hypothetical estimate based on rainfall alone. "
+            f"Actual risk depends on real-time river levels, soil saturation, and local drainage."
         )
 
 
@@ -414,26 +414,18 @@ Instructions:
         return response.text
     except Exception as e:
         if "429" in str(e):
-            # Rate limited — answer from knowledge base without Gemini
-            # Build a minimal but useful response from the knowledge base context
-            kb_note = (
-                "_[AI assistant is temporarily rate-limited. Answering from knowledge base.]_\n\n"
-            )
             if live_data_context:
-                # We have live data — extract key facts and answer directly
                 return (
-                    kb_note +
-                    "Here is the live data I fetched for your location:\n" +
+                    "Here is the live data I fetched:\n" +
                     live_data_context.strip() +
-                    "\n\nFor emergencies call **112** (India) or your local emergency number."
+                    "\n\nFor emergencies call 112 (India) or your local emergency number."
                 )
             return (
-                kb_note +
                 "Mumbai and surrounding areas flood during heavy monsoon rainfall due to:\n"
                 "- Poor stormwater drainage capacity (only handles ~25mm/hr)\n"
                 "- Low-lying coastal geography\n"
                 "- Encroachment on natural water bodies and mangroves\n"
                 "- Simultaneous high tides blocking drainage outflows\n\n"
-                "For emergencies: **112** | NDMA: **1078** | IMD alerts: imd.gov.in"
+                "For emergencies: 112 | NDMA: 1078 | IMD alerts: imd.gov.in"
             )
-        return f"I'm having trouble connecting right now. For emergencies, call 112. ({str(e)[:80]})"
+        return f"I'm having trouble connecting right now. For emergencies, call 112."
