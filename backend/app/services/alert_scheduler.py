@@ -98,12 +98,18 @@ async def run_alert_check():
         try:
             weather = await get_weather_by_coords(lat, lon)
             current = weather["current"]
+
+            # --- Fetch real river discharge from GloFAS (Open-Meteo) ---
+            from app.services.river_service import get_river_level
+            river_data  = await get_river_level(lat, lon)
+            river_level = river_data["river_level"]   # 0-10 normalised score
+
             risk = predict_flood_risk(
                 rainfall=current["rainfall_3h"],   # mm/3h — correct unit for IMD thresholds
                 humidity=current["humidity"],
                 temperature=current["temperature"],
                 wind_speed=current["wind_speed"],
-                river_level=0,
+                river_level=river_level,            # Real GloFAS data (not proxy)
                 lat=lat,
                 lon=lon,
                 location_name=loc_name
