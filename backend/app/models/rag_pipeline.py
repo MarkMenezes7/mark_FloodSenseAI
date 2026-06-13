@@ -348,7 +348,7 @@ async def get_rag_response(
         city_results.sort(key=lambda x: -x["score"])
         top5 = city_results[:5]
         scan_text = "\n".join([
-            f"  {i+1}. {r['city']} — {r['level']} ({r['score']}%) | Rain: {r['rain']} mm/3h | Humidity: {r['humidity']}% | {r['weather']}"
+            f"  {i+1}. {r['city']} -- {r['level']} ({r['score']}%) | Rain: {r['rain']} mm/3h | Humidity: {r['humidity']}% | {r['weather']}"
             for i, r in enumerate(top5)
         ])
         live_data_context = f"""
@@ -356,8 +356,11 @@ LIVE REAL-TIME GLOBAL SCAN (20 cities checked right now using ML flood model):
 Top 5 highest flood risk cities at this moment:
 {scan_text}
 """
+        # Keep top5 accessible for clean 429 fallback formatting
+        _scan_top5 = top5
 
     else:
+        _scan_top5 = None  # no global scan for this question
         # Check B: Is the user asking about a specific named location?
         try:
             extract_model = genai.GenerativeModel(model_name=GEMINI_MODEL)
@@ -416,12 +419,31 @@ Instructions:
         return response.text
     except Exception as e:
         if "429" in str(e):
+            # Rate limited -- answer cleanly without Gemini
+            if is_global_scan_question and _scan_top5:
+                # Format the global scan result as a clean readable answer
+                top = _scan_top5[0]
+                lines = [f"Based on a live scan of 20 cities right now, the highest flood risk is in {top['city']}:"]
+                lines.append(f"  Risk: {top['level']} ({top['score']}%)")
+                lines.append(f"  Rainfall: {top['rain']} mm (last 3h)")
+                lines.append(f"  Humidity: {top['humidity']}%")
+                lines.append(f"  Conditions: {top['weather']}")
+                if len(_scan_top5) > 1:
+                    lines.append("\nOther cities monitored:")
+                    for r in _scan_top5[1:]:
+                        lines.append(f"  - {r['city']}: {r['level']} ({r['score']}%)")
+                lines.append("\nFor emergencies: 112 | NDMA: 1078")
+                return "\n".join(lines)
             if live_data_context:
-                return (
-                    "Here is the live data I fetched:\n" +
-                    live_data_context.strip() +
-                    "\n\nFor emergencies call 112 (India) or your local emergency number."
-                )
+                # Single city live data -- extract readable summary
+                lines = ["Current flood data for your query:"]
+                for line in live_data_context.strip().splitlines():
+                    line = line.strip()
+                    if line.startswith("-") or line.startswith("Location") or line.startswith("Flood") or line.startswith("Safety"):
+                        lines.append(line)
+                lines.append("\nFor emergencies: 112 | NDMA: 1078")
+                return "\n".join(lines)
+            # General knowledge fallback
             return (
                 "Mumbai and surrounding areas flood during heavy monsoon rainfall due to:\n"
                 "- Poor stormwater drainage capacity (only handles ~25mm/hr)\n"
@@ -430,4 +452,4 @@ Instructions:
                 "- Simultaneous high tides blocking drainage outflows\n\n"
                 "For emergencies: 112 | NDMA: 1078 | IMD alerts: imd.gov.in"
             )
-        return f"I'm having trouble connecting right now. For emergencies, call 112."
+        return "I'm having trouble connecting right now. For emergencies, call 112."

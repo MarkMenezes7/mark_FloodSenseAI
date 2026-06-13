@@ -200,7 +200,7 @@ export default function CheckRisk() {
                 </div>
                 <div className="card weather-stat">
                   <span className="ws-icon">🌧️</span>
-                  <div><p className="ws-label">Rainfall</p><p className="ws-val">{weather.current.rainfall_1h.toFixed(1)} mm</p><p className="ws-sub">Last 1 hour</p></div>
+                  <div><p className="ws-label">Rainfall</p><p className="ws-val">{weather.current.rainfall_3h.toFixed(1)} mm</p><p className="ws-sub">Last 3 hours</p></div>
                 </div>
                 <div className="card weather-stat">
                   <span className="ws-icon">💧</span>
