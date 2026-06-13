@@ -14,6 +14,12 @@ def load_model():
     return _ml_model
 
 
+# -- TEMPORARY TEST OVERRIDES (remove entries when done testing) --
+_TEST_OVERRIDES: dict = {
+    "guwahati": 85.0,   # forced 85% CRITICAL for heatmap/chatbot/WhatsApp testing
+}
+
+
 def predict_flood_risk(
     rainfall: float,
     humidity: float,
@@ -32,7 +38,23 @@ def predict_flood_risk(
     """
     from app.data.infrastructure_data import get_infrastructure_multiplier, get_infrastructure_description
 
-    # -- Issue 6 Fix: Estimate river pressure from cumulative rainfall --
+    # -- TEMPORARY TEST OVERRIDE CHECK --
+    loc_lower = location_name.lower()
+    for test_loc, forced_score in _TEST_OVERRIDES.items():
+        if test_loc in loc_lower:
+            return {
+                "risk_score": forced_score,
+                "risk_level": "CRITICAL",
+                "color": "#ef4444",
+                "advice": "[TEST MODE] Evacuate immediately. Seek higher ground. Contact emergency services (112).",
+                "infrastructure_multiplier": get_infrastructure_multiplier(location_name),
+                "infrastructure_quality": get_infrastructure_description(get_infrastructure_multiplier(location_name)),
+                "inputs": {"rainfall": rainfall, "humidity": humidity,
+                           "temperature": temperature, "wind_speed": wind_speed,
+                           "river_level_estimated": river_level},
+                "test_override": True
+            }
+
     # If rain_3h > 20mm, rivers start filling. We use this as a proxy
     # since we don't have a live river gauge API.
     if river_level == 0 and rainfall > 0:
