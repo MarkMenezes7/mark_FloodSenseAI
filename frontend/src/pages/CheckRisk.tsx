@@ -165,6 +165,7 @@ export default function CheckRisk() {
                 <span className="last-updated">🔄 Updated {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · auto-refreshes every 10 min</span>
               )}
               {weather.current.data_timestamp > 0 && (() => {
+                // eslint-disable-next-line react-hooks/purity
                 const ageMin = Math.round((Date.now() / 1000 - weather.current.data_timestamp) / 60)
                 return (
                   <span style={{

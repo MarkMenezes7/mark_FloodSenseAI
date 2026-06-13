@@ -4,6 +4,7 @@ import 'leaflet.heat'
 import './FloodMap.css'
 
 // Fix Leaflet default marker icon broken in Vite
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 delete (L.Icon.Default.prototype as any)._getIconUrl
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
@@ -156,6 +157,7 @@ export default function FloodMap({
     const heatPoints = buildHeatPoints(lat, lon, riskScore, FLOOD_HOTSPOTS)
 
     if (heatPoints.length > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ;(L as any).heatLayer(heatPoints, {
         radius:    45,          // pixel spread per point
         blur:      30,          // edge softness
