@@ -126,7 +126,8 @@ async def run_alert_check():
                 now_utc = datetime.now(timezone.utc)
                 cooldown_hours = 2
                 if last_alerted:
-                    if last_alerted.tzinfo is None:
+                    # Ensure last_alerted is timezone-aware
+                    if hasattr(last_alerted, 'tzinfo') and last_alerted.tzinfo is None:
                         last_alerted = last_alerted.replace(tzinfo=timezone.utc)
                     time_since = now_utc - last_alerted
                     if time_since < timedelta(hours=cooldown_hours):
@@ -161,7 +162,7 @@ async def run_alert_check():
                 from datetime import datetime, timezone, timedelta
                 last_alerted = row.get("last_alerted_at")
                 if last_alerted:
-                    if last_alerted.tzinfo is None:
+                    if hasattr(last_alerted, 'tzinfo') and last_alerted.tzinfo is None:
                         last_alerted = last_alerted.replace(tzinfo=timezone.utc)
                     now_utc = datetime.now(timezone.utc)
                     # Only send all-clear if we alerted them recently (within 6h) — they're still on alert
