@@ -23,3 +23,5 @@ services:
         sync: false
       - key: FRONTEND_URL
         value: https://floodsenseai-frontend.vercel.app
+      - key: RENDER_EXTERNAL_URL
+        value: https://floodsenseai-backend.onrender.com

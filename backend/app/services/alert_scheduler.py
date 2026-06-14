@@ -193,6 +193,7 @@ def start_scheduler():
     """Start the APScheduler background job. Called once on app startup."""
     scheduler = get_scheduler()
     if not scheduler.running:
+        # Alert check every 30 minutes
         scheduler.add_job(
             run_alert_check,
             trigger=IntervalTrigger(minutes=30),
@@ -201,8 +202,30 @@ def start_scheduler():
             replace_existing=True,
             max_instances=1,
         )
+
+        # Keep-alive ping every 10 minutes so Render free tier never spins down.
+        # Without this, Render kills the process after 15 min idle and the scheduler dies.
+        async def _keep_alive():
+            import httpx
+            backend_url = os.getenv("RENDER_EXTERNAL_URL", "http://localhost:8000")
+            try:
+                async with httpx.AsyncClient(timeout=8) as client:
+                    r = await client.get(f"{backend_url}/health")
+                    print(f"[KeepAlive] Pinged {backend_url}/health → {r.status_code}")
+            except Exception as exc:
+                print(f"[KeepAlive] Ping failed: {exc}")
+
+        scheduler.add_job(
+            _keep_alive,
+            trigger=IntervalTrigger(minutes=10),
+            id="keep_alive_ping",
+            name="Render Keep-Alive Ping",
+            replace_existing=True,
+            max_instances=1,
+        )
+
         scheduler.start()
-        print("[Scheduler] Started — flood alerts will check every 30 minutes.")
+        print("[Scheduler] Started — flood alerts every 30 min, keep-alive ping every 10 min.")
 
 
 def stop_scheduler():

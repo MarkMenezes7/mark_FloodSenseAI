@@ -75,15 +75,53 @@ async def handle_incoming_whatsapp(
             "🌐 Full dashboard: https://floodsenseai-frontend.vercel.app"
         )
     elif re.search(r'\bunsubscribe\b', body_lower):
-        return "✅ You have been unsubscribed from FloodSenseAI alerts. Stay safe! 🙏"
+        # Also remove from DB
+        try:
+            from app.db.database import get_pool
+            phone_clean = from_number.replace('whatsapp:', '').strip()
+            pool = await get_pool()
+            async with pool.acquire() as conn:
+                await conn.execute("DELETE FROM alert_subscriptions WHERE phone_number=$1", phone_clean)
+        except Exception:
+            pass
+        return "You have been unsubscribed from FloodSenseAI alerts. Stay safe!"
     elif re.search(r'\bsubscribe\b', body_lower) and not re.search(r'\bunsubscribe\b', body_lower):
-        return (
-            "🔔 *Alert Subscription*\n\n"
-            "To subscribe for automatic flood alerts:\n"
-            "1. Share your location with me\n"
-            "2. I'll alert you when risk exceeds 60%\n\n"
-            "📍 Please share your location now!"
-        )
+        # Extract city name after the word 'subscribe', e.g. "subscribe Guwahati"
+        city_match = re.sub(r'^.*?\bsubscribe\b\s*', '', body, flags=re.IGNORECASE).strip()
+        phone_clean = from_number.replace('whatsapp:', '').strip()
+
+        if city_match:
+            try:
+                from app.services.weather_service import get_weather_by_city
+                from app.db.database import get_pool
+                weather = await get_weather_by_city(city_match)
+                if "error" not in weather:
+                    loc = weather["location"]
+                    pool = await get_pool()
+                    async with pool.acquire() as conn:
+                        await conn.execute("""
+                            INSERT INTO alert_subscriptions
+                                (phone_number, latitude, longitude, location_name, risk_threshold)
+                            VALUES ($1, $2, $3, $4, 60)
+                            ON CONFLICT (phone_number) DO UPDATE
+                            SET latitude=$2, longitude=$3, location_name=$4, risk_threshold=60
+                        """, phone_clean, loc["lat"], loc["lon"], loc["name"])
+                    return (
+                        f"Subscribed! You will get a WhatsApp alert when flood risk in {loc['name']} exceeds 60%.\n"
+                        f"The system checks every 30 minutes automatically.\n"
+                        f"Reply unsubscribe to stop alerts."
+                    )
+                else:
+                    return f"Could not find city '{city_match}'. Try: subscribe Mumbai"
+            except Exception as exc:
+                return f"Error subscribing: {str(exc)[:80]}"
+        else:
+            return (
+                "To subscribe for automatic flood alerts, type:\n"
+                "subscribe <city name>\n"
+                "Example: subscribe Guwahati\n"
+                "You will get a WhatsApp alert when risk exceeds 60%."
+            )
     else:
         # Sanitize city name input before passing to external API
         # Allow only safe characters: letters, numbers, spaces, commas, dots, hyphens
