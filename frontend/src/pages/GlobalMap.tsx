@@ -68,10 +68,10 @@ export default function GlobalMap() {
             style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: '#0f172a', zIndex: 0 }}
             zoomControl={false} // Hide default to place it better if needed, or keep default
           >
-            {/* Dark theme basemap (CartoDB Dark Matter) */}
+            {/* Standard OpenStreetMap basemap */}
             <TileLayer
-              attribution='&copy; <a href="https://carto.com/">CartoDB</a>'
-              url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
             
             {/* OpenWeatherMap Precipitation Layer */}
