@@ -24,4 +24,4 @@ services:
       - key: FRONTEND_URL
         value: https://floodsenseai-frontend.vercel.app
       - key: RENDER_EXTERNAL_URL
-        value: https://floodsenseai-backend.onrender.com
+        value: https://mark-floodsenseai.onrender.com

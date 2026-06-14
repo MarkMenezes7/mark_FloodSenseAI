@@ -207,7 +207,7 @@ def start_scheduler():
         # Without this, Render kills the process after 15 min idle and the scheduler dies.
         async def _keep_alive():
             import httpx
-            backend_url = os.getenv("RENDER_EXTERNAL_URL", "http://localhost:8000")
+            backend_url = os.getenv("RENDER_EXTERNAL_URL", "https://mark-floodsenseai.onrender.com")
             try:
                 async with httpx.AsyncClient(timeout=8) as client:
                     r = await client.get(f"{backend_url}/health")
