@@ -17,25 +17,57 @@ def _require_admin(x_admin_key: str | None):
 
 @router.post("/webhook", response_class=PlainTextResponse)
 async def whatsapp_webhook(request: Request):
-    """Twilio WhatsApp webhook - handles incoming messages and location shares"""
-    form_data = await request.form()
+    """Twilio WhatsApp webhook — responds instantly (avoids 5s Twilio timeout),
+    then sends the actual reply as an outbound message via background task."""
+    import asyncio
+    form_data   = await request.form()
     body        = form_data.get("Body", "").strip()
     from_number = form_data.get("From", "")
     latitude    = form_data.get("Latitude")
     longitude   = form_data.get("Longitude")
 
-    response_message = await handle_incoming_whatsapp(
+    # Fire reply in the background — do NOT await here, so we return instantly
+    asyncio.create_task(_reply_async(
         body=body,
         from_number=from_number,
         latitude=float(latitude)  if latitude  else None,
-        longitude=float(longitude) if longitude else None
+        longitude=float(longitude) if longitude else None,
+    ))
+
+    # Return an empty TwiML response immediately so Twilio doesn't time out
+    return PlainTextResponse(
+        content='<?xml version="1.0" encoding="UTF-8"?><Response></Response>',
+        media_type="application/xml"
     )
 
-    twiml = f"""<?xml version="1.0" encoding="UTF-8"?>
-<Response>
-    <Message>{response_message}</Message>
-</Response>"""
-    return PlainTextResponse(content=twiml, media_type="application/xml")
+
+async def _reply_async(body: str, from_number: str, latitude, longitude):
+    """Actually process the message and send a reply via Twilio REST API (not TwiML)."""
+    import httpx, os
+    from app.services.twilio_service import handle_incoming_whatsapp
+
+    reply = await handle_incoming_whatsapp(
+        body=body,
+        from_number=from_number,
+        latitude=latitude,
+        longitude=longitude,
+    )
+
+    # Send outbound message via Twilio REST API
+    sid   = os.getenv("TWILIO_ACCOUNT_SID", "")
+    token = os.getenv("TWILIO_AUTH_TOKEN", "")
+    frm   = os.getenv("TWILIO_WHATSAPP_FROM", "whatsapp:+14155238886")
+    url   = f"https://api.twilio.com/2010-04-01/Accounts/{sid}/Messages.json"
+
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            r = await client.post(url,
+                data={"From": frm, "To": from_number, "Body": reply},
+                auth=(sid, token)
+            )
+            print(f"[Webhook] Sent reply to {from_number}: HTTP {r.status_code}")
+    except Exception as exc:
+        print(f"[Webhook] Failed to send reply: {exc}")
 
 
 @router.post("/trigger-alerts")
