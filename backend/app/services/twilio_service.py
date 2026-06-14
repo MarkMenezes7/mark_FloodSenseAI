@@ -57,12 +57,18 @@ async def handle_incoming_whatsapp(
     body_words = set(body_lower.split())
     if body_words & {"hi", "hello", "hey", "start"}:
         return (
-            "👋 Welcome to *FloodSenseAI* 🌊\n\n"
-            "I can help you with real-time flood risk information!\n\n"
-            "📍 *Share your location* (Tap the 📎 or ➕ icon > Location)\n"
-            "🌆 Or just type any city name below\n"
-            "ℹ️ Type *!help* for all commands\n\n"
-            "Stay safe! 🙏"
+            "👋 Welcome to FloodSenseAI!\n\n"
+            "Here is what you can do:\n\n"
+            "🌆 Type a city name to get its flood risk\n"
+            "   Example: Guwahati\n\n"
+            "🔔 Subscribe for automatic alerts:\n"
+            "   Type: subscribe <city name>\n"
+            "   Example: subscribe Guwahati\n"
+            "   You will get a WhatsApp alert when flood risk exceeds 60%\n\n"
+            "📍 Share your live location for your exact area risk\n\n"
+            "❌ Type unsubscribe to stop alerts\n"
+            "ℹ️ Type !help for all commands\n\n"
+            "Stay safe!"
         )
     elif "!help" in body_lower:
         return (
