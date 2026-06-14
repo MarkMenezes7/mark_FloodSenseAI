@@ -51,8 +51,8 @@ export default function GlobalMap() {
           <div className="map-legend">
             <div className="legend-item"><div className="legend-color color-extreme"></div> Extreme / Hail (Purple)</div>
             <div className="legend-item"><div className="legend-color color-heavy"></div> Heavy Rain (Red)</div>
-            <div className="legend-item"><div className="legend-color color-mod"></div> Moderate Rain (Yellow)</div>
-            <div className="legend-item"><div className="legend-color color-light"></div> Light Rain (Green)</div>
+            <div className="legend-item"><div className="legend-color color-mod"></div> Moderate Rain (Yellow/Green)</div>
+            <div className="legend-item"><div className="legend-color color-light"></div> Light Rain (Blue)</div>
           </div>
 
           <div className="timestamp-badge">
@@ -65,13 +65,17 @@ export default function GlobalMap() {
           <MapContainer 
             center={[20, 0]} 
             zoom={3} 
-            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: '#0f172a', zIndex: 0 }}
+            minZoom={2}
+            maxBounds={[[-90, -180], [90, 180]]}
+            maxBoundsViscosity={1.0}
+            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: '#e2e8f0', zIndex: 0 }}
             zoomControl={false} // Hide default to place it better if needed, or keep default
           >
-            {/* Standard OpenStreetMap basemap */}
+            {/* Grayscale light basemap (CartoDB Positron) so radar colors don't clash with terrain */}
             <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='&copy; <a href="https://carto.com/">CartoDB</a>'
+              url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+              noWrap={true}
             />
             
             {/* OpenWeatherMap Precipitation Layer */}
@@ -79,6 +83,7 @@ export default function GlobalMap() {
               attribution='&copy; <a href="https://openweathermap.org/">OpenWeather</a>'
               url={`https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${apiKey}`}
               opacity={0.85}
+              noWrap={true}
             />
           </MapContainer>
         ) : error ? (

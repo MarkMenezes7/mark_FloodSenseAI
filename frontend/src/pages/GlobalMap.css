@@ -64,10 +64,10 @@
   border-radius: 4px;
 }
 
-.color-extreme { background: #800080; } /* Purple */
-.color-heavy   { background: #ff0000; } /* Red */
-.color-mod     { background: #ffff00; } /* Yellow */
-.color-light   { background: #00ff00; } /* Green */
+.color-extreme { background: #d946ef; } /* Purple */
+.color-heavy   { background: #ef4444; } /* Red */
+.color-mod     { background: #eab308; } /* Yellow/Green */
+.color-light   { background: #3b82f6; } /* Blue */
 
 .timestamp-badge {
   display: inline-block;
