@@ -51,7 +51,7 @@ export default function GlobalMap() {
           <div className="map-legend">
             <div className="legend-item"><div className="legend-color color-extreme"></div> Extreme / Hail (Purple)</div>
             <div className="legend-item"><div className="legend-color color-heavy"></div> Heavy Rain (Red)</div>
-            <div className="legend-item"><div className="legend-color color-mod"></div> Moderate Rain (Yellow/Green)</div>
+            <div className="legend-item"><div className="legend-color color-mod"></div> Moderate Rain (Yellow)</div>
             <div className="legend-item"><div className="legend-color color-light"></div> Light Rain (Blue)</div>
           </div>
 
