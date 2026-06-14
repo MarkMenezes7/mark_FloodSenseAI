@@ -65,7 +65,7 @@ export default function GlobalMap() {
           <MapContainer 
             center={[20, 0]} 
             zoom={3} 
-            style={{ width: '100%', height: '100%', background: '#0f172a' }}
+            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: '#0f172a', zIndex: 0 }}
             zoomControl={false} // Hide default to place it better if needed, or keep default
           >
             {/* Dark theme basemap (CartoDB Dark Matter) */}
