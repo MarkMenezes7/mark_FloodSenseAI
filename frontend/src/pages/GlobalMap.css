@@ -11,8 +11,9 @@
   flex: 1;
   width: 100%;
   position: relative;
-  background: var(--bg-deep);
+  background: #e8ecf1;
   border-top: 1px solid var(--border-color);
+  overflow: hidden;
 }
 
 .map-overlay-panel {

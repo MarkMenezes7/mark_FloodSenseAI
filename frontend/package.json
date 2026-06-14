@@ -14,9 +14,11 @@
     "axios": "^1.17.0",
     "leaflet": "^1.9.4",
     "leaflet.heat": "^0.2.0",
+    "mapbox-gl": "^3.24.1",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-leaflet": "^5.0.0",
+    "react-map-gl": "^8.1.1",
     "react-router-dom": "^6.30.4",
     "recharts": "^3.8.1"
   },

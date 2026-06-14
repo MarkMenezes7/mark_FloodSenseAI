@@ -1,53 +1,108 @@
-import { useEffect, useState } from 'react'
-import { MapContainer, TileLayer } from 'react-leaflet'
-import 'leaflet/dist/leaflet.css'
+import { useEffect, useRef, useState, useCallback } from 'react'
+import mapboxgl from 'mapbox-gl'
+import 'mapbox-gl/dist/mapbox-gl.css'
 import './GlobalMap.css'
 
+// Token is stored in Vercel environment variable VITE_MAPBOX_TOKEN
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN as string
+mapboxgl.accessToken = MAPBOX_TOKEN
+
 export default function GlobalMap() {
-  const [apiKey, setApiKey] = useState<string>('')
-  const [error, setError] = useState(false)
+  const mapContainer = useRef<HTMLDivElement>(null)
+  const map = useRef<mapboxgl.Map | null>(null)
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
+  const [mapLoaded, setMapLoaded] = useState(false)
 
-  const API = window.location.hostname === 'localhost' ? 'http://localhost:8000' : 'https://mark-floodsenseai.onrender.com'
+  const API = window.location.hostname === 'localhost'
+    ? 'http://localhost:8000'
+    : 'https://mark-floodsenseai.onrender.com'
 
-  useEffect(() => {
-    // Fetch the OpenWeather API key from our backend config
-    const fetchConfig = async () => {
-      try {
-        const res = await fetch(`${API}/api/weather/config`)
-        const data = await res.json()
-        if (data.openweather_key) {
-          setApiKey(data.openweather_key)
-        } else {
-          setError(true)
-        }
-      } catch (err) {
-        setError(true)
-      }
+  const addWeatherLayer = useCallback(async (mapInstance: mapboxgl.Map) => {
+    try {
+      const res = await fetch(`${API}/api/weather/config`)
+      const data = await res.json()
+      const owmKey = data.openweather_key
+      if (!owmKey) return
+
+      // Add OpenWeatherMap precipitation as a raster source
+      mapInstance.addSource('owm-precipitation', {
+        type: 'raster',
+        tiles: [`https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${owmKey}`],
+        tileSize: 256,
+        attribution: '© OpenWeatherMap',
+        maxzoom: 10,
+      })
+
+      mapInstance.addLayer({
+        id: 'precipitation-layer',
+        type: 'raster',
+        source: 'owm-precipitation',
+        paint: {
+          'raster-opacity': 0.80,
+          'raster-fade-duration': 300,
+        },
+      })
+    } catch (err) {
+      console.error('Failed to load weather layer:', err)
     }
-
-    fetchConfig()
-
-    // Auto-refresh the timestamp every 10 minutes (OpenWeather updates tiles roughly every 10-30 min)
-    const interval = setInterval(() => {
-      setLastUpdate(new Date())
-    }, 10 * 60 * 1000)
-
-    return () => clearInterval(interval)
   }, [API])
 
-  // Render a nice timestamp
+  useEffect(() => {
+    if (map.current || !mapContainer.current) return
+
+    const mapInstance = new mapboxgl.Map({
+      container: mapContainer.current,
+      style: 'mapbox://styles/mapbox/light-v11',
+      center: [20, 20],
+      zoom: 3,
+      minZoom: 2,
+      projection: 'mercator',
+    })
+
+    mapInstance.addControl(new mapboxgl.NavigationControl(), 'bottom-right')
+    mapInstance.addControl(new mapboxgl.ScaleControl({ maxWidth: 120, unit: 'metric' }), 'bottom-left')
+
+    mapInstance.on('load', () => {
+      setMapLoaded(true)
+      addWeatherLayer(mapInstance)
+    })
+
+    map.current = mapInstance
+
+    // Refresh weather layer every 10 minutes
+    const interval = setInterval(() => {
+      setLastUpdate(new Date())
+      if (map.current && map.current.isStyleLoaded()) {
+        // Remove and re-add to force fresh tiles
+        if (map.current.getLayer('precipitation-layer')) {
+          map.current.removeLayer('precipitation-layer')
+        }
+        if (map.current.getSource('owm-precipitation')) {
+          map.current.removeSource('owm-precipitation')
+        }
+        addWeatherLayer(map.current)
+      }
+    }, 10 * 60 * 1000)
+
+    return () => {
+      clearInterval(interval)
+      mapInstance.remove()
+      map.current = null
+    }
+  }, [addWeatherLayer])
+
   const ageMins = Math.floor((new Date().getTime() - lastUpdate.getTime()) / 60000)
   const timeText = ageMins === 0 ? 'just now' : `${ageMins} min ago`
 
   return (
     <div className="global-map-page">
       <div className="map-container-full">
+
         {/* Overlay Panel */}
         <div className="map-overlay-panel">
           <h1>🌍 Global Live Radar</h1>
           <p>Real-time precipitation and rainfall intensity across the entire world, down to street-level neighborhoods.</p>
-          
+
           <div className="map-legend">
             <div className="legend-item"><div className="legend-color color-extreme"></div> Extreme / Hail (Purple)</div>
             <div className="legend-item"><div className="legend-color color-heavy"></div> Heavy Rain (Red)</div>
@@ -58,40 +113,16 @@ export default function GlobalMap() {
           <div className="timestamp-badge">
             🔄 Live satellite feed — updated {timeText}
           </div>
+
+          {!mapLoaded && (
+            <div style={{ marginTop: 12, color: '#94a3b8', fontSize: '0.78rem' }}>
+              ⏳ Loading map...
+            </div>
+          )}
         </div>
 
-        {/* Map */}
-        {apiKey ? (
-          <MapContainer 
-            center={[20, 0]} 
-            zoom={3} 
-            minZoom={3}
-            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: '#e2e8f0', zIndex: 0 }}
-            zoomControl={false}
-          >
-            {/* Grayscale light basemap (CartoDB Positron) so radar colors don't clash with terrain */}
-            <TileLayer
-              attribution='&copy; <a href="https://carto.com/">CartoDB</a>'
-              url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-            />
-            
-            {/* OpenWeatherMap Precipitation Layer */}
-            <TileLayer
-              attribution='&copy; <a href="https://openweathermap.org/">OpenWeather</a>'
-              url={`https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${apiKey}`}
-              opacity={0.85}
-              maxNativeZoom={10} // Speeds up loading massively when zoomed in
-            />
-          </MapContainer>
-        ) : error ? (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#ef4444' }}>
-            Failed to load weather radar configuration.
-          </div>
-        ) : (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#94a3b8' }}>
-            Connecting to weather satellites...
-          </div>
-        )}
+        {/* Mapbox Map */}
+        <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />
       </div>
     </div>
   )
