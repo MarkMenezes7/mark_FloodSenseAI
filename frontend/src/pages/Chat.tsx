@@ -20,7 +20,7 @@ export default function Chat() {
   }])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
-  const API = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+  const API = window.location.hostname === 'localhost' ? 'http://localhost:8000' : 'https://mark-floodsenseai.onrender.com'
 
   const sendMessage = async (text: string) => {
     if (!text.trim() || loading) return

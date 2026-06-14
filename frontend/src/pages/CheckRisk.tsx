@@ -27,7 +27,7 @@ export default function CheckRisk() {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const refreshTimer = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  const API = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+  const API = window.location.hostname === 'localhost' ? 'http://localhost:8000' : 'https://mark-floodsenseai.onrender.com'
 
   const fetchForCoords = useCallback(async (lat: number, lon: number) => {
     setLoading(true); setError('')

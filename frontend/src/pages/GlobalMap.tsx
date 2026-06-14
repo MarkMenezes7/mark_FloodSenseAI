@@ -8,7 +8,7 @@ export default function GlobalMap() {
   const [error, setError] = useState(false)
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
 
-  const API = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+  const API = window.location.hostname === 'localhost' ? 'http://localhost:8000' : 'https://mark-floodsenseai.onrender.com'
 
   useEffect(() => {
     // Fetch the OpenWeather API key from our backend config

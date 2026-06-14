@@ -16,7 +16,7 @@ export default function Alerts() {
   const [message, setMessage]         = useState('')
   const [locLoading, setLocLoading]   = useState(false)
 
-  const API = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+  const API = window.location.hostname === 'localhost' ? 'http://localhost:8000' : 'https://mark-floodsenseai.onrender.com'
 
   const detectLocation = () => {
     if (!navigator.geolocation) return
