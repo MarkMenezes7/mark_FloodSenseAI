@@ -258,10 +258,9 @@ export default function Alerts() {
             <div className="steps-list">
               {[
                 { n: '0', title: 'Join the sandbox first', desc: `Send "join young-except" to ${BOT_NUMBER} on WhatsApp. You only need to do this once.`, highlight: true },
-                { n: '1', title: 'Subscribe above', desc: 'Enter your WhatsApp number and set your preferred risk threshold.' },
-                { n: '2', title: 'Say hi to the bot', desc: `After joining, send "hi" to ${BOT_NUMBER} to activate your subscription.` },
-                { n: '3', title: 'Share your location', desc: 'Type any city name or share your GPS location for an instant report.' },
-                { n: '4', title: 'Receive auto-alerts', desc: 'We check every 30 minutes and send you a message when risk exceeds your threshold.' },
+                { n: '1', title: 'Say hi to the bot', desc: `After joining, send "hi" to ${BOT_NUMBER} to activate the bot and open your messaging window.` },
+                { n: '2', title: 'Subscribe', desc: 'Either use the form on this page, or simply reply "subscribe <your city>" to the bot.' },
+                { n: '3', title: 'Receive auto-alerts', desc: 'We check your city every 30 minutes and send an instant WhatsApp message when risk is critical.' },
               ].map(s => (
                 <div key={s.n} className="card step-card">
                   <div className="step-num">{s.n}</div>
