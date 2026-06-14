@@ -65,17 +65,14 @@ export default function GlobalMap() {
           <MapContainer 
             center={[20, 0]} 
             zoom={3} 
-            minZoom={2}
-            maxBounds={[[-90, -180], [90, 180]]}
-            maxBoundsViscosity={1.0}
+            minZoom={3}
             style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: '#e2e8f0', zIndex: 0 }}
-            zoomControl={false} // Hide default to place it better if needed, or keep default
+            zoomControl={false}
           >
             {/* Grayscale light basemap (CartoDB Positron) so radar colors don't clash with terrain */}
             <TileLayer
               attribution='&copy; <a href="https://carto.com/">CartoDB</a>'
               url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-              noWrap={true}
             />
             
             {/* OpenWeatherMap Precipitation Layer */}
@@ -83,7 +80,7 @@ export default function GlobalMap() {
               attribution='&copy; <a href="https://openweathermap.org/">OpenWeather</a>'
               url={`https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${apiKey}`}
               opacity={0.85}
-              noWrap={true}
+              maxNativeZoom={10} // Speeds up loading massively when zoomed in
             />
           </MapContainer>
         ) : error ? (
