@@ -6,6 +6,7 @@ import Home from './pages/Home'
 import CheckRisk from './pages/CheckRisk'
 import Chat from './pages/Chat'
 import Alerts from './pages/Alerts'
+import GlobalMap from './pages/GlobalMap'
 import './index.css'
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
               <Route path="/check-risk" element={<CheckRisk />} />
               <Route path="/assistant"  element={<Chat />} />
               <Route path="/alerts"     element={<Alerts />} />
+              <Route path="/map"        element={<GlobalMap />} />
             </Routes>
           </main>
           <Footer />

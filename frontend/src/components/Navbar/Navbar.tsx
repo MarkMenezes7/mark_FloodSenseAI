@@ -41,6 +41,7 @@ export default function Navbar() {
           <div className="navbar-center">
             <NavLink to="/"           className={navLinkClass} end id="nav-home">Home</NavLink>
             <NavLink to="/check-risk" className={navLinkClass}     id="nav-check-risk">Check Risk</NavLink>
+            <NavLink to="/map"        className={navLinkClass}     id="nav-map">Global Map</NavLink>
             <NavLink to="/assistant"  className={navLinkClass}     id="nav-assistant">AI Assistant</NavLink>
             <NavLink to="/alerts"     className={navLinkClass}     id="nav-alerts">Alerts</NavLink>
             <a
@@ -84,6 +85,7 @@ export default function Navbar() {
         <div className="mobile-nav-links">
           <NavLink to="/"           className="mobile-nav-link" end>🏠 Home</NavLink>
           <NavLink to="/check-risk" className="mobile-nav-link">🔍 Check Risk</NavLink>
+          <NavLink to="/map"        className="mobile-nav-link">🌍 Global Map</NavLink>
           <NavLink to="/assistant"  className="mobile-nav-link">🤖 AI Assistant</NavLink>
           <NavLink to="/alerts"     className="mobile-nav-link">🔔 Alerts</NavLink>
           <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="mobile-nav-link wa-link">

@@ -15,3 +15,9 @@ async def current_weather(request: Request, lat: float = Query(...), lon: float 
 async def city_weather(request: Request, city: str = Query(...)):
     """Get current weather for a city name — rate limited to 30/min per IP"""
     return await get_weather_by_city(city)
+
+@router.get("/config")
+async def get_weather_config():
+    """Return public weather config (like API key for tile maps)"""
+    import os
+    return {"openweather_key": os.getenv("OPENWEATHER_API_KEY", "")}

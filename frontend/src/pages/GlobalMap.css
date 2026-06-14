@@ -1,0 +1,94 @@
+/* ── Global Map Page Layout ──────────────────────────────────────────── */
+.global-map-page {
+  padding-bottom: 0;
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - var(--nav-height) - 1px);
+}
+
+.map-container-full {
+  flex: 1;
+  width: 100%;
+  position: relative;
+  background: var(--bg-deep);
+  border-top: 1px solid var(--border-color);
+}
+
+.map-overlay-panel {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 1000;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-color);
+  padding: 1.5rem;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  max-width: 320px;
+}
+
+.map-overlay-panel h1 {
+  font-size: 1.5rem;
+  margin: 0 0 8px;
+  background: linear-gradient(135deg, #38bdf8, #818cf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.map-overlay-panel p {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  margin: 0 0 16px;
+}
+
+.map-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legend-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+}
+
+.color-extreme { background: #800080; } /* Purple */
+.color-heavy   { background: #ff0000; } /* Red */
+.color-mod     { background: #ffff00; } /* Yellow */
+.color-light   { background: #00ff00; } /* Green */
+
+.timestamp-badge {
+  display: inline-block;
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+  padding: 4px 10px;
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-top: 16px;
+  border: 1px solid rgba(74, 222, 128, 0.3);
+}
+
+/* Fix leaflet controls on dark mode */
+.leaflet-bar a {
+  background-color: var(--bg-card) !important;
+  color: var(--text-primary) !important;
+  border-bottom-color: var(--border-color) !important;
+}
+.leaflet-bar a:hover {
+  background-color: var(--bg-hover) !important;
+}
+.leaflet-control-zoom {
+  border: 1px solid var(--border-color) !important;
+}
