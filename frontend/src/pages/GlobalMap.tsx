@@ -57,6 +57,7 @@ export default function GlobalMap() {
       zoom: 3,
       minZoom: 2,
       projection: 'mercator',
+      renderWorldCopies: false,   // prevents India/world from repeating on pan
     })
 
     mapInstance.addControl(new mapboxgl.NavigationControl(), 'bottom-right')
