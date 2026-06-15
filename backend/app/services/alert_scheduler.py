@@ -197,7 +197,7 @@ def start_scheduler():
         # Alert check every 30 minutes
         scheduler.add_job(
             run_alert_check,
-            trigger=IntervalTrigger(minutes=30),
+            trigger=IntervalTrigger(hours=1),
             id="flood_alert_check",
             name="Flood Risk Alert Checker",
             replace_existing=True,
