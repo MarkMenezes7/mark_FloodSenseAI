@@ -99,7 +99,7 @@ function buildHeatPoints(
       const falloff   = Math.exp(-(dist * dist) / (2 * SIGMA * SIGMA))
       let   intensity = baseIntensity * falloff
 
-      // Hotspot boost — if a known hotspot is near this grid cell, raise intensity
+      // Hotspot boost - if a known hotspot is near this grid cell, raise intensity
       const ptLat = centerLat + dlat
       const ptLon = centerLon + dlon
       for (const hs of hotspots) {
@@ -165,12 +165,12 @@ export default function FloodMap({
         max:       1.0,
         gradient: {
           0.00: 'rgba(0,0,0,0)',        // transparent (no risk)
-          0.15: '#22c55e',              // green — low
+          0.15: '#22c55e',              // green - low
           0.40: '#84cc16',              // lime
-          0.55: '#eab308',              // yellow — moderate
-          0.70: '#f97316',              // orange — high
-          0.85: '#ef4444',              // red — critical
-          1.00: '#7f1d1d',              // dark red — extreme
+          0.55: '#eab308',              // yellow - moderate
+          0.70: '#f97316',              // orange - high
+          0.85: '#ef4444',              // red - critical
+          1.00: '#7f1d1d',              // dark red - extreme
         },
       }).addTo(map)
     }
@@ -197,7 +197,7 @@ export default function FloodMap({
       </div>
     `, { maxWidth: 240 }).openPopup()
 
-    // Nearby flood hotspots within 60km — shown as dot markers
+    // Nearby flood hotspots within 60km - shown as dot markers
     const nearbyHotspots = FLOOD_HOTSPOTS.filter(h => distanceKm(lat, lon, h.lat, h.lon) < 60)
 
     nearbyHotspots.forEach(hotspot => {
@@ -252,7 +252,7 @@ export default function FloodMap({
     <div className="flood-map-wrapper">
       <div className="flood-map-header">
         <span className="map-label">🌡️ Flood Risk Heat Map</span>
-        <span className="map-hint">Heat intensity shows estimated flood risk — red = critical, green = safe</span>
+        <span className="map-hint">Heat intensity shows estimated flood risk - red = critical, green = safe</span>
       </div>
       <div ref={mapRef} className="flood-map-container" id="flood-map" />
     </div>

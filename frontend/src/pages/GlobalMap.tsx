@@ -96,7 +96,7 @@ export default function GlobalMap() {
             </div>
             <div class="wx-row">
               <span class="wx-label">☁️ Conditions</span>
-              <span class="wx-val">${cur.description ?? '—'}</span>
+              <span class="wx-val">${cur.description ?? '-'}</span>
             </div>
           </div>
           <div class="wx-coords">${lngLat.lat.toFixed(3)}°, ${lngLat.lng.toFixed(3)}°</div>
@@ -178,7 +178,7 @@ export default function GlobalMap() {
           </div>
 
           <div className="timestamp-badge">
-            🔄 Live satellite feed — updated {timeText}
+            🔄 Live satellite feed - updated {timeText}
           </div>
 
           {mapLoaded && (

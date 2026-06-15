@@ -28,7 +28,7 @@ export default function Navbar() {
       <nav className="navbar">
         <div className="navbar-inner">
 
-          {/* LEFT — Logo */}
+          {/* LEFT - Logo */}
           <NavLink to="/" className="navbar-logo" id="navbar-logo">
             <span className="logo-wave">🌊</span>
             <div className="logo-text">
@@ -37,7 +37,7 @@ export default function Navbar() {
             </div>
           </NavLink>
 
-          {/* CENTRE — Desktop Nav Links */}
+          {/* CENTRE - Desktop Nav Links */}
           <div className="navbar-center">
             <NavLink to="/"           className={navLinkClass} end id="nav-home">Home</NavLink>
             <NavLink to="/check-risk" className={navLinkClass}     id="nav-check-risk">Check Risk</NavLink>
@@ -58,7 +58,7 @@ export default function Navbar() {
             </a>
           </div>
 
-          {/* RIGHT — Developer Info + Mobile Toggle */}
+          {/* RIGHT - Developer Info + Mobile Toggle */}
           <div className="navbar-right">
             <div className="navbar-dev-info">
               <p className="dev-name">Developed By: <strong>Mark Menezes</strong></p>

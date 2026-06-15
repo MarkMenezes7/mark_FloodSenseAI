@@ -16,7 +16,7 @@ export default function Footer() {
             <span className="footer-logo-name">FloodSense<span className="footer-logo-ai">AI</span></span>
           </Link>
           <p className="footer-tagline">
-            AI-powered real-time flood risk prediction and community alert system — free for everyone, everywhere.
+            AI-powered real-time flood risk prediction and community alert system - free for everyone, everywhere.
           </p>
           <a href={WA_LINK} target="_blank" rel="noopener noreferrer" className="btn btn-whatsapp footer-wa-btn" id="footer-whatsapp-btn">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">

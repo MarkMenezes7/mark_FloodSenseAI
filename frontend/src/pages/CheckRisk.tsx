@@ -10,7 +10,7 @@ interface WeatherData {
     rainfall_1h: number; rainfall_3h: number
     wind_speed: number; description: string; icon: string
     pressure: number; visibility: number
-    data_timestamp: number  // Unix epoch from OWM — for freshness display
+    data_timestamp: number  // Unix epoch from OWM - for freshness display
   }
   forecast: Array<{ time: string; temperature: number; rainfall: number; description: string; icon: string }>
 }
