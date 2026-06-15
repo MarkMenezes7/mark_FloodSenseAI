@@ -82,15 +82,62 @@
   border: 1px solid rgba(74, 222, 128, 0.3);
 }
 
-/* Fix leaflet controls on dark mode */
-.leaflet-bar a {
-  background-color: var(--bg-card) !important;
-  color: var(--text-primary) !important;
-  border-bottom-color: var(--border-color) !important;
+/* ── Weather Click Popup ─────────────────────────────────────────────── */
+.mapboxgl-popup-content {
+  padding: 0 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.25) !important;
+  border: 1px solid rgba(148,163,184,0.2);
+  overflow: hidden;
 }
-.leaflet-bar a:hover {
-  background-color: var(--bg-hover) !important;
+
+.wx-card {
+  font-family: 'Inter', sans-serif;
+  min-width: 220px;
 }
-.leaflet-control-zoom {
-  border: 1px solid var(--border-color) !important;
+
+.wx-title {
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  color: #f1f5f9;
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 10px 14px;
+  letter-spacing: 0.01em;
 }
+
+.wx-grid {
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: #ffffff;
+}
+
+.wx-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+}
+
+.wx-label { color: #64748b; }
+.wx-val   { font-weight: 600; color: #0f172a; }
+.wx-danger { color: #ef4444; }
+
+.wx-coords {
+  background: #f8fafc;
+  color: #94a3b8;
+  font-size: 0.68rem;
+  padding: 5px 14px;
+  border-top: 1px solid #e2e8f0;
+  font-family: monospace;
+}
+
+.wx-loading, .wx-error {
+  padding: 16px;
+  font-size: 0.82rem;
+  color: #64748b;
+  font-family: 'Inter', sans-serif;
+  background: #fff;
+}
+.wx-error { color: #ef4444; }

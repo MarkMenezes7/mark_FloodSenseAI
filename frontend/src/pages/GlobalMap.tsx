@@ -10,6 +10,8 @@ mapboxgl.accessToken = MAPBOX_TOKEN
 export default function GlobalMap() {
   const mapContainer = useRef<HTMLDivElement>(null)
   const map = useRef<mapboxgl.Map | null>(null)
+  const popup = useRef<mapboxgl.Popup | null>(null)
+  const hoverTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
   const [mapLoaded, setMapLoaded] = useState(false)
 
@@ -24,7 +26,6 @@ export default function GlobalMap() {
       const owmKey = data.openweather_key
       if (!owmKey) return
 
-      // Add OpenWeatherMap precipitation as a raster source
       mapInstance.addSource('owm-precipitation', {
         type: 'raster',
         tiles: [`https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${owmKey}`],
@@ -47,6 +48,65 @@ export default function GlobalMap() {
     }
   }, [API])
 
+  const fetchWeatherPopup = useCallback(async (
+    mapInstance: mapboxgl.Map,
+    lngLat: mapboxgl.LngLat
+  ) => {
+    // Show loading popup immediately
+    if (popup.current) popup.current.remove()
+    popup.current = new mapboxgl.Popup({ closeButton: true, maxWidth: '260px', className: 'wx-popup' })
+      .setLngLat(lngLat)
+      .setHTML(`<div class="wx-loading">⏳ Fetching weather...</div>`)
+      .addTo(mapInstance)
+
+    try {
+      const res = await fetch(`${API}/api/weather/current?lat=${lngLat.lat.toFixed(4)}&lon=${lngLat.lng.toFixed(4)}`)
+      const data = await res.json()
+      const loc = data.location
+      const cur = data.current
+
+      if (!cur) {
+        popup.current?.setHTML(`<div class="wx-error">❌ No data for this location</div>`)
+        return
+      }
+
+      const rain = cur.rainfall_1h ?? 0
+      const rainLabel = rain === 0 ? 'None' : `${rain} mm/hr`
+      const riskEmoji = rain > 10 ? '🔴' : rain > 2 ? '🟡' : '🟢'
+
+      popup.current?.setHTML(`
+        <div class="wx-card">
+          <div class="wx-title">📍 ${loc?.name ?? 'Unknown'}, ${loc?.country ?? ''}</div>
+          <div class="wx-grid">
+            <div class="wx-row">
+              <span class="wx-label">🌧️ Rainfall</span>
+              <span class="wx-val ${rain > 5 ? 'wx-danger' : ''}">${rainLabel} ${riskEmoji}</span>
+            </div>
+            <div class="wx-row">
+              <span class="wx-label">💧 Humidity</span>
+              <span class="wx-val">${cur.humidity}%</span>
+            </div>
+            <div class="wx-row">
+              <span class="wx-label">💨 Wind</span>
+              <span class="wx-val">${cur.wind_speed} m/s</span>
+            </div>
+            <div class="wx-row">
+              <span class="wx-label">🌡️ Temp</span>
+              <span class="wx-val">${cur.temperature}°C</span>
+            </div>
+            <div class="wx-row">
+              <span class="wx-label">☁️ Conditions</span>
+              <span class="wx-val">${cur.description ?? '—'}</span>
+            </div>
+          </div>
+          <div class="wx-coords">${lngLat.lat.toFixed(3)}°, ${lngLat.lng.toFixed(3)}°</div>
+        </div>
+      `)
+    } catch {
+      popup.current?.setHTML(`<div class="wx-error">❌ Failed to load weather data</div>`)
+    }
+  }, [API])
+
   useEffect(() => {
     if (map.current || !mapContainer.current) return
 
@@ -57,7 +117,7 @@ export default function GlobalMap() {
       zoom: 3,
       minZoom: 2,
       projection: 'mercator',
-      renderWorldCopies: false,   // prevents India/world from repeating on pan
+      renderWorldCopies: false,
     })
 
     mapInstance.addControl(new mapboxgl.NavigationControl(), 'bottom-right')
@@ -68,19 +128,25 @@ export default function GlobalMap() {
       addWeatherLayer(mapInstance)
     })
 
+    // Click to show weather popup
+    mapInstance.on('click', (e) => {
+      if (hoverTimeout.current) clearTimeout(hoverTimeout.current)
+      fetchWeatherPopup(mapInstance, e.lngLat)
+    })
+
+    // Change cursor to pointer on hover
+    mapInstance.on('mousemove', () => {
+      mapInstance.getCanvas().style.cursor = 'crosshair'
+    })
+
     map.current = mapInstance
 
     // Refresh weather layer every 10 minutes
     const interval = setInterval(() => {
       setLastUpdate(new Date())
       if (map.current && map.current.isStyleLoaded()) {
-        // Remove and re-add to force fresh tiles
-        if (map.current.getLayer('precipitation-layer')) {
-          map.current.removeLayer('precipitation-layer')
-        }
-        if (map.current.getSource('owm-precipitation')) {
-          map.current.removeSource('owm-precipitation')
-        }
+        if (map.current.getLayer('precipitation-layer')) map.current.removeLayer('precipitation-layer')
+        if (map.current.getSource('owm-precipitation')) map.current.removeSource('owm-precipitation')
         addWeatherLayer(map.current)
       }
     }, 10 * 60 * 1000)
@@ -90,7 +156,7 @@ export default function GlobalMap() {
       mapInstance.remove()
       map.current = null
     }
-  }, [addWeatherLayer])
+  }, [addWeatherLayer, fetchWeatherPopup])
 
   const ageMins = Math.floor((new Date().getTime() - lastUpdate.getTime()) / 60000)
   const timeText = ageMins === 0 ? 'just now' : `${ageMins} min ago`
@@ -115,6 +181,11 @@ export default function GlobalMap() {
             🔄 Live satellite feed — updated {timeText}
           </div>
 
+          {mapLoaded && (
+            <div style={{ marginTop: 10, color: '#64748b', fontSize: '0.72rem' }}>
+              💡 Click anywhere on the map to see live weather
+            </div>
+          )}
           {!mapLoaded && (
             <div style={{ marginTop: 12, color: '#94a3b8', fontSize: '0.78rem' }}>
               ⏳ Loading map...
