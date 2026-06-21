@@ -61,9 +61,9 @@
 .fm-popup .mapboxgl-popup-content {
   padding: 0 !important;
   border-radius: 12px !important;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.2) !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.25) !important;
+  border: 1px solid rgba(148,163,184,0.2);
   overflow: hidden;
-  border: 1px solid rgba(148,163,184,0.25);
 }
 
 .fm-card {
@@ -71,33 +71,17 @@
   min-width: 220px;
 }
 
-/* Dark header — location name + risk score together */
-.fm-header {
-  background: linear-gradient(135deg, #0f172a, #1e293b);
-  padding: 10px 14px 12px;
-}
-
+/* Dark header — same as wx-title */
 .fm-title {
+  background: linear-gradient(135deg, #0f172a, #1e293b);
   color: #f1f5f9;
   font-weight: 700;
   font-size: 0.85rem;
-  margin-bottom: 6px;
+  padding: 10px 14px;
+  letter-spacing: 0.01em;
 }
 
-.fm-score {
-  font-size: 1.4rem;
-  font-weight: 800;
-  line-height: 1;
-}
-
-.fm-level {
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  opacity: 0.9;
-}
-
-/* Rows grid — identical to wx-grid */
+/* White rows grid — same as wx-grid */
 .fm-grid {
   padding: 10px 14px;
   display: flex;
@@ -106,6 +90,25 @@
   background: #ffffff;
 }
 
+/* Score row — bold risk score as first item in grid */
+.fm-score-row {
+  padding-bottom: 6px;
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 2px;
+}
+
+.fm-score {
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+
+.fm-level {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+/* All rows — same as wx-row */
 .fm-row {
   display: flex;
   justify-content: space-between;
@@ -118,13 +121,14 @@
 .fm-danger { color: #ef4444; }
 .fm-orange { color: #f97316; }
 
-/* Footer tip — identical to wx-coords */
+/* Footer — same as wx-coords */
 .fm-tip {
   font-size: 0.68rem;
   color: #475569;
   padding: 5px 14px;
   background: #f8fafc;
   border-top: 1px solid #e2e8f0;
+  font-family: monospace;
 }
 
 /* ── Shared weather click popup styles (reused from GlobalMap) ── */

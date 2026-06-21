@@ -84,11 +84,9 @@ export default function FloodMap({
 
     return `
       <div class="fm-card">
-        <div class="fm-header">
-          <div class="fm-title">📍 ${_locationName}</div>
-          <div class="fm-score" style="color:${_riskColor}">${_riskScore.toFixed(0)}% <span class="fm-level">${_riskLevel} RISK</span></div>
-        </div>
+        <div class="fm-title">📍 ${_locationName}</div>
         <div class="fm-grid">
+          <div class="fm-row fm-score-row"><span class="fm-score" style="color:${_riskColor}">${_riskScore.toFixed(0)}%</span><span class="fm-level" style="color:${_riskColor}">${_riskLevel} RISK</span></div>
           <div class="fm-row"><span class="fm-label">🌧️ Rainfall</span><span class="fm-val ${rainDanger}">${rainLabel} ${riskEmoji}</span></div>
           <div class="fm-row"><span class="fm-label">💧 Humidity</span><span class="fm-val">${_humidity}%</span></div>
           <div class="fm-row"><span class="fm-label">💨 Wind</span><span class="fm-val">${_windSpeed.toFixed(1)} m/s</span></div>
