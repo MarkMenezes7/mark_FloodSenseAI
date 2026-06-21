@@ -75,13 +75,6 @@ export default function FloodMap({
     const riskEmoji = _rainfall > 10 ? '🔴' : _rainfall > 2 ? '🟡' : '🟢'
     const rainDanger = _rainfall > 5 ? 'fm-danger' : ''
 
-    const infraLine = _infraQuality
-      ? `<div class="fm-row"><span class="fm-label">🏗️ Infrastructure</span><span class="fm-val fm-orange">${_infraQuality.replace(/_/g, ' ')}</span></div>`
-      : ''
-    const multLine = _infraMultiplier
-      ? `<div class="fm-row"><span class="fm-label">⚡ Risk multiplier</span><span class="fm-val">${_infraMultiplier.toFixed(1)}×</span></div>`
-      : ''
-
     return `
       <div class="fm-card">
         <div class="fm-title">📍 ${_locationName}</div>
@@ -92,8 +85,6 @@ export default function FloodMap({
           <div class="fm-row"><span class="fm-label">💨 Wind</span><span class="fm-val">${_windSpeed.toFixed(1)} m/s</span></div>
           <div class="fm-row"><span class="fm-label">🌡️ Temp</span><span class="fm-val">${_temperature.toFixed(1)}°C</span></div>
           <div class="fm-row"><span class="fm-label">☁️ Conditions</span><span class="fm-val">${_weatherDescription || '-'}</span></div>
-          ${infraLine}
-          ${multLine}
         </div>
         <div class="fm-tip">Click anywhere on map for another location's weather</div>
       </div>
