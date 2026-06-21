@@ -169,7 +169,7 @@ export default function CheckRisk() {
                 const ageMin = Math.round((Date.now() / 1000 - weather.current.data_timestamp) / 60)
                 return (
                   <span style={{
-                    fontSize: '0.72rem', color: ageMin > 30 ? '#f97316' : '#64748b',
+                    fontSize: '0.72rem', color: ageMin > 30 ? '#f97316' : '#475569',
                     background: 'rgba(255,255,255,0.05)', borderRadius: 6,
                     padding: '2px 8px', border: '1px solid #333'
                   }}>

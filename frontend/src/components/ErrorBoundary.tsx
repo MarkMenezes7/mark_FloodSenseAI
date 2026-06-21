@@ -30,7 +30,7 @@ export default class ErrorBoundary extends Component<Props, State> {
           <h1 style={{ fontSize: '1.8rem', fontWeight: 700, marginBottom: '0.5rem' }}>
             Something went wrong
           </h1>
-          <p style={{ color: '#94a3b8', maxWidth: 420, marginBottom: '0.5rem' }}>
+          <p style={{ color: '#475569', maxWidth: 420, marginBottom: '0.5rem' }}>
             The app encountered an unexpected error. This usually happens when the backend server is temporarily unreachable.
           </p>
           <p style={{

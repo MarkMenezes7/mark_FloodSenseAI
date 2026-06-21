@@ -182,12 +182,12 @@ export default function GlobalMap() {
           </div>
 
           {mapLoaded && (
-            <div style={{ marginTop: 10, color: '#64748b', fontSize: '0.72rem' }}>
+            <div style={{ marginTop: 10, color: '#475569', fontSize: '0.72rem' }}>
               💡 Click anywhere on the map to see live weather
             </div>
           )}
           {!mapLoaded && (
-            <div style={{ marginTop: 12, color: '#94a3b8', fontSize: '0.78rem' }}>
+            <div style={{ marginTop: 12, color: '#475569', fontSize: '0.78rem' }}>
               ⏳ Loading map...
             </div>
           )}
