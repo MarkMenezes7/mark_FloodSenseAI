@@ -57,7 +57,7 @@
   100% { box-shadow: 0 0 0 0 rgba(234, 88, 12, 0); }
 }
 
-/* ── Risk Popup Card ───────────────────────────────────────────── */
+/* ── Risk Popup Card (matches wx-card exactly) ─────────────────── */
 .fm-popup .mapboxgl-popup-content {
   padding: 0 !important;
   border-radius: 12px !important;
@@ -71,51 +71,58 @@
   min-width: 220px;
 }
 
-.fm-title {
+/* Dark header — location name + risk score together */
+.fm-header {
   background: linear-gradient(135deg, #0f172a, #1e293b);
+  padding: 10px 14px 12px;
+}
+
+.fm-title {
   color: #f1f5f9;
   font-weight: 700;
   font-size: 0.85rem;
-  padding: 10px 14px;
+  margin-bottom: 6px;
 }
 
 .fm-score {
-  padding: 10px 14px 4px;
-  font-size: 1.6rem;
+  font-size: 1.4rem;
   font-weight: 800;
   line-height: 1;
-  background: #fff;
 }
 
 .fm-level {
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.05em;
-  opacity: 0.85;
+  opacity: 0.9;
 }
 
-.fm-divider {
-  height: 1px;
-  background: #e2e8f0;
-  margin: 8px 14px;
+/* Rows grid — identical to wx-grid */
+.fm-grid {
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: #ffffff;
 }
 
 .fm-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.78rem;
-  padding: 2px 14px;
-  background: #fff;
+  font-size: 0.8rem;
 }
 
-.fm-label { color: #475569; }
-.fm-val   { font-weight: 600; color: #0f172a; }
+.fm-label  { color: #475569; }
+.fm-val    { font-weight: 600; color: #0f172a; }
+.fm-danger { color: #ef4444; }
+.fm-orange { color: #f97316; }
 
+/* Footer tip — identical to wx-coords */
 .fm-tip {
   font-size: 0.68rem;
   color: #475569;
-  padding: 8px 14px;
+  padding: 5px 14px;
   background: #f8fafc;
   border-top: 1px solid #e2e8f0;
 }

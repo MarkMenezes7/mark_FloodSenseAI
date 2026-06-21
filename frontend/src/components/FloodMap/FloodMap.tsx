@@ -73,10 +73,10 @@ export default function FloodMap({
   ) => {
     const rainLabel = _rainfall === 0 ? 'None' : `${_rainfall.toFixed(1)} mm`
     const riskEmoji = _rainfall > 10 ? '🔴' : _rainfall > 2 ? '🟡' : '🟢'
-    const rainColor = _rainfall > 5 ? '#ef4444' : '#0f172a'
+    const rainDanger = _rainfall > 5 ? 'fm-danger' : ''
 
     const infraLine = _infraQuality
-      ? `<div class="fm-row"><span class="fm-label">🏗️ Infrastructure</span><span class="fm-val" style="color:#f97316">${_infraQuality.replace(/_/g, ' ')}</span></div>`
+      ? `<div class="fm-row"><span class="fm-label">🏗️ Infrastructure</span><span class="fm-val fm-orange">${_infraQuality.replace(/_/g, ' ')}</span></div>`
       : ''
     const multLine = _infraMultiplier
       ? `<div class="fm-row"><span class="fm-label">⚡ Risk multiplier</span><span class="fm-val">${_infraMultiplier.toFixed(1)}×</span></div>`
@@ -84,16 +84,19 @@ export default function FloodMap({
 
     return `
       <div class="fm-card">
-        <div class="fm-title">📍 ${_locationName}</div>
-        <div class="fm-score" style="color:${_riskColor}">${_riskScore.toFixed(0)}% <span class="fm-level">${_riskLevel} RISK</span></div>
-        <div class="fm-divider"></div>
-        <div class="fm-row"><span class="fm-label">🌧️ Rainfall</span><span class="fm-val" style="color:${rainColor}">${rainLabel} ${riskEmoji}</span></div>
-        <div class="fm-row"><span class="fm-label">💧 Humidity</span><span class="fm-val">${_humidity}%</span></div>
-        <div class="fm-row"><span class="fm-label">💨 Wind</span><span class="fm-val">${_windSpeed.toFixed(1)} m/s</span></div>
-        <div class="fm-row"><span class="fm-label">🌡️ Temp</span><span class="fm-val">${_temperature.toFixed(1)}°C</span></div>
-        <div class="fm-row"><span class="fm-label">☁️ Conditions</span><span class="fm-val">${_weatherDescription || '-'}</span></div>
-        ${infraLine}
-        ${multLine}
+        <div class="fm-header">
+          <div class="fm-title">📍 ${_locationName}</div>
+          <div class="fm-score" style="color:${_riskColor}">${_riskScore.toFixed(0)}% <span class="fm-level">${_riskLevel} RISK</span></div>
+        </div>
+        <div class="fm-grid">
+          <div class="fm-row"><span class="fm-label">🌧️ Rainfall</span><span class="fm-val ${rainDanger}">${rainLabel} ${riskEmoji}</span></div>
+          <div class="fm-row"><span class="fm-label">💧 Humidity</span><span class="fm-val">${_humidity}%</span></div>
+          <div class="fm-row"><span class="fm-label">💨 Wind</span><span class="fm-val">${_windSpeed.toFixed(1)} m/s</span></div>
+          <div class="fm-row"><span class="fm-label">🌡️ Temp</span><span class="fm-val">${_temperature.toFixed(1)}°C</span></div>
+          <div class="fm-row"><span class="fm-label">☁️ Conditions</span><span class="fm-val">${_weatherDescription || '-'}</span></div>
+          ${infraLine}
+          ${multLine}
+        </div>
         <div class="fm-tip">Click anywhere on map for another location's weather</div>
       </div>
     `
