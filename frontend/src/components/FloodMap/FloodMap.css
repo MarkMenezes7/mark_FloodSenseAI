@@ -1,50 +1,177 @@
-.flood-map-wrapper {
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  border: 1px solid var(--border-light);
-  background: var(--bg-card);
-  box-shadow: var(--shadow-sm);
+/* ── FloodMap Wrapper ──────────────────────────────────────────── */
+.flood-map-section {
+  margin-top: 8px;
 }
 
 .flood-map-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px var(--space-lg);
-  background: var(--bg-card);
-  border-bottom: 1px solid var(--border-light);
+  margin-bottom: 12px;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 8px;
 }
 
-.map-label {
-  font-size: 0.88rem;
-  font-weight: 600;
+.flood-map-title {
+  font-size: 1rem;
+  font-weight: 700;
   color: var(--text-primary);
+  margin: 0;
 }
 
-.map-hint {
-  font-size: 0.78rem;
-  color: var(--text-muted);
+.flood-map-hint {
+  font-size: 0.75rem;
+  color: #475569;
 }
 
-.flood-map-container {
-  height: 380px;
+.flood-map-wrapper {
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-md);
+  height: 420px;
   width: 100%;
-  z-index: 1;
+  position: relative;
 }
 
-/* Override leaflet popup style to match our theme */
-.leaflet-popup-content-wrapper {
+.flood-map-canvas {
+  width: 100%;
+  height: 100%;
+}
+
+/* ── Custom Pulsing Risk Marker ────────────────────────────────── */
+.fm-marker {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 3px solid var(--risk-color, #ea580c);
+  background: white;
+  box-shadow: 0 0 0 0 rgba(234, 88, 12, 0.4);
+  animation: fm-pulse 2s infinite;
+  cursor: pointer;
+}
+
+@keyframes fm-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(234, 88, 12, 0.4); }
+  70%  { box-shadow: 0 0 0 12px rgba(234, 88, 12, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(234, 88, 12, 0); }
+}
+
+/* ── Risk Popup Card ───────────────────────────────────────────── */
+.fm-popup .mapboxgl-popup-content {
+  padding: 0 !important;
   border-radius: 12px !important;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.12) !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2) !important;
+  overflow: hidden;
+  border: 1px solid rgba(148,163,184,0.25);
 }
 
-.leaflet-popup-tip {
-  background: white !important;
+.fm-card {
+  font-family: 'Inter', sans-serif;
+  min-width: 220px;
 }
 
-@media (max-width: 768px) {
-  .flood-map-container { height: 280px; }
-  .map-hint { display: none; }
+.fm-title {
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  color: #f1f5f9;
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 10px 14px;
 }
+
+.fm-score {
+  padding: 10px 14px 4px;
+  font-size: 1.6rem;
+  font-weight: 800;
+  line-height: 1;
+  background: #fff;
+}
+
+.fm-level {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  opacity: 0.85;
+}
+
+.fm-divider {
+  height: 1px;
+  background: #e2e8f0;
+  margin: 8px 14px;
+}
+
+.fm-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.78rem;
+  padding: 2px 14px;
+  background: #fff;
+}
+
+.fm-label { color: #475569; }
+.fm-val   { font-weight: 600; color: #0f172a; }
+
+.fm-tip {
+  font-size: 0.68rem;
+  color: #475569;
+  padding: 8px 14px;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+}
+
+/* ── Shared weather click popup styles (reused from GlobalMap) ── */
+.wx-popup .mapboxgl-popup-content {
+  padding: 0 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.25) !important;
+  border: 1px solid rgba(148,163,184,0.2);
+  overflow: hidden;
+}
+
+.wx-card { font-family: 'Inter', sans-serif; min-width: 220px; }
+
+.wx-title {
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  color: #f1f5f9;
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 10px 14px;
+}
+
+.wx-grid {
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: #ffffff;
+}
+
+.wx-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+}
+
+.wx-label { color: #475569; }
+.wx-val   { font-weight: 600; color: #0f172a; }
+.wx-danger { color: #ef4444; }
+
+.wx-coords {
+  background: #f8fafc;
+  color: #475569;
+  font-size: 0.68rem;
+  padding: 5px 14px;
+  border-top: 1px solid #e2e8f0;
+  font-family: monospace;
+}
+
+.wx-loading, .wx-error {
+  padding: 16px;
+  font-size: 0.82rem;
+  color: #475569;
+  font-family: 'Inter', sans-serif;
+  background: #fff;
+}
+.wx-error { color: #ef4444; }
