@@ -2,11 +2,18 @@
 .alerts-page { padding-bottom: var(--space-2xl); }
 
 .alerts-layout {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: var(--space-xl);
-  max-width: 650px; /* Keep it from stretching too wide on desktop */
-  align-items: stretch;
+  max-width: 1000px; 
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .alerts-layout {
+    grid-template-columns: 1fr;
+    max-width: 650px;
+  }
 }
 
 /* ── Subscription Form Card ──────────────────────────────────────── */

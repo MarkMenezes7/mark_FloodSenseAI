@@ -99,7 +99,7 @@ export default function Alerts() {
           <span style={{ fontSize: '2rem', lineHeight: 1 }}>📌</span>
           <div>
             <p style={{ fontWeight: 700, fontSize: '1rem', margin: '0 0 6px', color: '#25D366' }}>
-              Step 0 - Activate the WhatsApp Sandbox first (required)
+              Step 1 - Activate the WhatsApp Sandbox first (required)
             </p>
             <p style={{ margin: '0 0 10px', color: '#94a3b8', fontSize: '0.88rem', lineHeight: 1.5 }}>
               This bot runs on Twilio Sandbox. Before any message works, you must send exactly this phrase to {BOT_NUMBER}:
@@ -257,10 +257,10 @@ export default function Alerts() {
             {/* How it works steps */}
             <div className="steps-list">
               {[
-                { n: '0', title: 'Join the sandbox first', desc: `Send "join young-except" to ${BOT_NUMBER} on WhatsApp. You only need to do this once.`, highlight: true },
-                { n: '1', title: 'Say hi to the bot', desc: `After joining, send "hi" to ${BOT_NUMBER} to activate the bot and open your messaging window.` },
-                { n: '2', title: 'Subscribe', desc: 'Either use the form on this page, or simply reply "subscribe <your city>" to the bot.' },
-                { n: '3', title: 'Receive auto-alerts', desc: 'We check your city every 30 minutes and send an instant WhatsApp message when risk is critical.' },
+                { n: '1', title: 'Join the sandbox first', desc: `Send "join young-except" to ${BOT_NUMBER} on WhatsApp. You only need to do this once.`, highlight: true },
+                { n: '2', title: 'Say hi to the bot', desc: `After joining, send "hi" to ${BOT_NUMBER} to activate the bot and open your messaging window.` },
+                { n: '3', title: 'Subscribe', desc: 'Either use the form on this page, or simply reply "subscribe <your city>" to the bot.' },
+                { n: '4', title: 'Receive auto-alerts', desc: 'We check your city every 30 minutes and send an instant WhatsApp message when risk is critical.' },
               ].map(s => (
                 <div key={s.n} className="card step-card">
                   <div className="step-num">{s.n}</div>
