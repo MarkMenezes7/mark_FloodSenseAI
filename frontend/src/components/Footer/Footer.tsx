@@ -4,7 +4,6 @@ import './Footer.css'
 const WA_LINK = 'https://wa.me/14155238886?text=hi'
 
 export default function Footer() {
-  const year = new Date().getFullYear()
   return (
     <footer className="site-footer">
       <div className="footer-grid">
@@ -62,6 +61,7 @@ export default function Footer() {
             <span>❤️ SDG 3</span>
           </div>
         </div>
+
       </div>
     </footer>
   )
