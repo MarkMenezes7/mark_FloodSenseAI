@@ -163,6 +163,8 @@ def check_live_flood_risk(location_name: str) -> dict:
             
             return {
                 "location_matched": city_name,
+                "lat": lat,
+                "lon": lon,
                 "current_weather": weather["weather"][0]["description"],
                 "temperature_celsius": temp,
                 "humidity_percent": humidity,
@@ -173,6 +175,40 @@ def check_live_flood_risk(location_name: str) -> dict:
             }
     except Exception as e:
         return {"error": f"Tool execution failed: {str(e)}"}
+
+
+def get_24h_forecast(lat: float, lon: float) -> str:
+    """
+    Fetches the next 24 hours of 3-hourly forecast from OWM and returns
+    a formatted string ready to inject into the AI prompt.
+    """
+    if not OPENWEATHER_API_KEY:
+        return ""
+    try:
+        import datetime as _dt
+        with httpx.Client(timeout=10.0) as client:
+            resp = client.get("https://api.openweathermap.org/data/2.5/forecast", params={
+                "lat": lat, "lon": lon, "appid": OPENWEATHER_API_KEY,
+                "units": "metric", "cnt": 8   # 8 x 3h = 24 hours
+            })
+            data = resp.json()
+            if "list" not in data:
+                return ""
+            lines = ["24-HOUR FORECAST (3-hour intervals, local times are UTC):"]
+            for slot in data["list"]:
+                dt_str = slot.get("dt_txt", "")
+                desc   = slot["weather"][0]["description"]
+                temp   = slot["main"]["temp"]
+                rain   = slot.get("rain", {}).get("3h", 0)
+                hum    = slot["main"]["humidity"]
+                lines.append(
+                    f"  {dt_str} UTC — {desc}, {temp:.0f}°C, "
+                    f"rain: {rain:.1f} mm/3h, humidity: {hum}%"
+                )
+            return "\n".join(lines)
+    except Exception:
+        return ""
+
 
 
 # 2. Configure model to use tools (model name from env — no hardcoding)
@@ -362,6 +398,13 @@ Top 5 highest flood risk cities at this moment:
     else:
         _scan_top5 = None  # no global scan for this question
         # Check B: Is the user asking about a specific named location?
+        # Also detect if they're asking about a specific time (tonight, 9pm, tomorrow, etc.)
+        is_time_specific = any(kw in msg_lower for kw in [
+            "tonight", "this evening", "this afternoon", "this morning", "tomorrow",
+            "9 pm", "9pm", "8 pm", "8pm", "10 pm", "10pm", "midnight", "noon",
+            "in a few hours", "later today", "by evening", "by night", "by morning",
+            "next few hours", "forecast", "will it rain", "going to rain", "expected to rain"
+        ])
         try:
             extract_model = genai.GenerativeModel(model_name=GEMINI_MODEL)
             extract_response = await extract_model.generate_content_async(
@@ -387,6 +430,11 @@ LIVE REAL-TIME WEATHER DATA (fetched right now for '{extracted_location}'):
 - Flood Risk Level: {weather_data['flood_risk_level']}
 - Safety Advice: {weather_data['safety_advice']}
 """
+                    # If user is asking about a future/specific time, fetch the 24h forecast too
+                    if is_time_specific and "lat" in weather_data:
+                        forecast_str = get_24h_forecast(weather_data["lat"], weather_data["lon"])
+                        if forecast_str:
+                            live_data_context += f"\n{forecast_str}\n"
         except Exception as e429:
             if "429" in str(e429):
                 # Extractor hit rate limit — skip live data, answer from knowledge base only
@@ -406,11 +454,12 @@ USER QUESTION: {message}
 
 Instructions:
 1. If LIVE REAL-TIME WEATHER DATA is provided above, use it to give a specific, accurate answer. Do NOT say you cannot provide real-time data.
-2. If the live data shows LOW flood risk, tell the user the place is safe to visit from a flood perspective.
-3. If the live data shows HIGH or CRITICAL risk, strongly warn the user.
-4. Be concise, friendly, and helpful. Answer the user's actual question directly.
-5. Use emojis sparingly for readability.
-6. If asked something outside flood/weather/disaster topics, gently redirect.
+2. If 24-HOUR FORECAST data is provided, use it to answer time-specific questions like "will it rain at 9pm?" or "what about tonight?". The timestamps are in UTC — India (IST) is UTC+5:30.
+3. If the live data shows LOW flood risk, tell the user the place is safe to visit from a flood perspective.
+4. If the live data shows HIGH or CRITICAL risk, strongly warn the user.
+5. Be concise, friendly, and helpful. Answer the user's actual question directly.
+6. Use emojis sparingly for readability.
+7. If asked something outside flood/weather/disaster topics, gently redirect.
 """
 
     try:
