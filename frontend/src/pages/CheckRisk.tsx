@@ -246,6 +246,11 @@ export default function CheckRisk() {
                 riskColor={risk.color}
                 infrastructureMultiplier={risk.infrastructure_multiplier}
                 infrastructureQuality={risk.infrastructure_quality}
+                rainfall={weather.current.rainfall_3h}
+                humidity={weather.current.humidity}
+                windSpeed={weather.current.wind_speed}
+                temperature={weather.current.temperature}
+                weatherDescription={weather.current.description}
               />
             )}
 
