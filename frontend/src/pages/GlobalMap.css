@@ -21,13 +21,29 @@
   top: 20px;
   left: 20px;
   z-index: 1000;
-  background: rgba(15, 23, 42, 0.85);
+  background: rgba(15, 23, 42, 0.88);
   backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border-color);
   padding: 1.5rem;
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.4);
   max-width: 320px;
+  max-height: calc(100% - 40px);
+  overflow-y: auto;
+}
+
+@media (max-width: 600px) {
+  .map-overlay-panel {
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    max-width: calc(100% - 20px);
+    padding: 0.9rem 1rem;
+    max-height: 45vh;
+    overflow-y: auto;
+    border-radius: 12px;
+  }
 }
 
 .map-overlay-panel h1 {
@@ -80,6 +96,14 @@
   font-weight: 600;
   margin-top: 16px;
   border: 1px solid rgba(74, 222, 128, 0.3);
+}
+
+@media (max-width: 600px) {
+  .map-overlay-panel h1 { font-size: 1.1rem; margin-bottom: 4px; }
+  .map-overlay-panel > p { display: none; }
+  .map-legend { gap: 5px; font-size: 0.72rem; }
+  .legend-color { width: 12px; height: 12px; }
+  .timestamp-badge { margin-top: 8px; font-size: 0.68rem; padding: 3px 8px; }
 }
 
 /* ── Weather Click Popup ─────────────────────────────────────────────── */

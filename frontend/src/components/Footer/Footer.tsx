@@ -62,14 +62,6 @@ export default function Footer() {
             <span>❤️ SDG 3</span>
           </div>
         </div>
-
-      </div>
-
-      <div className="footer-bottom">
-        <div className="footer-bottom-inner">
-          <p>© {year} FloodSenseAI · Built with ❤️ for community safety</p>
-          <p>Powered by Google Gemini AI · OpenWeatherMap · Neon PostgreSQL</p>
-        </div>
       </div>
     </footer>
   )
