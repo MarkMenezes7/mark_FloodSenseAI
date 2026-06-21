@@ -94,7 +94,8 @@ export default function Navbar() {
         </div>
         <div className="mobile-dev-info">
           <p>Developed By: <strong>Mark Menezes</strong></p>
-          <p>📧 markmenezes198@gmail.com · 📞 +91 8452857820</p>
+          <p>📧 markmenezes198@gmail.com</p>
+          <p>📞 +91 8452857820</p>
         </div>
       </div>
 

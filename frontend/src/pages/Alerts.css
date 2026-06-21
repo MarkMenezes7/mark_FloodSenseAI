@@ -180,7 +180,11 @@
   font-weight: 600;
   color: var(--color-primary);
   white-space: nowrap;
-  min-width: 120px;
+  min-width: 100px;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
 }
 .cmd-row span { font-size: 0.8rem; color: var(--text-muted); }
 
@@ -188,4 +192,7 @@
 @media (max-width: 600px) {
   .loc-row { flex-direction: column; }
   .detect-btn { width: 100%; }
+  .cmd-row { gap: var(--space-sm); flex-wrap: wrap; }
+  .cmd-row code { min-width: auto; max-width: 100%; }
+  .cmd-row span { flex: 1; }
 }

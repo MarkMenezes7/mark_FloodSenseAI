@@ -128,8 +128,9 @@
 }
 @media (max-width: 900px) {
   .hero-container { grid-template-columns: 1fr; text-align: center; }
-  .hero-image-wrap { order: -1; }
-  .hero-img { max-width: 380px; }
+  .hero-content { order: 1; }
+  .hero-image-wrap { order: 2; }
+  .hero-img { max-width: 340px; }
   .hero-actions { justify-content: center; }
   .hero-desc { margin: 0 auto var(--space-xl); }
   .about-grid { grid-template-columns: 1fr; }
