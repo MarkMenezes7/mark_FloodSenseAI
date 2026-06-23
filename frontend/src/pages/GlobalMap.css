@@ -33,6 +33,38 @@
   overflow-y: auto;
 }
 
+/* Close button inside the panel header */
+.map-panel-close-btn {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: #94a3b8;
+  border-radius: 8px;
+  width: 32px; height: 32px;
+  font-size: 1rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-left: 8px;
+  transition: background 0.2s;
+}
+.map-panel-close-btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
+
+/* Reopen button shown on mobile when panel is closed */
+.map-panel-reopen-btn {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 10;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: #e2e8f0;
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+
 @media (max-width: 600px) {
   .map-overlay-panel {
     top: 10px;

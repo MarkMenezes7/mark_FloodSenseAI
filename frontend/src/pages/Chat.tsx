@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import './Chat.css'
 
 interface Message { role: 'user' | 'assistant'; content: string; timestamp: Date }
@@ -21,6 +21,12 @@ export default function Chat() {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const API = window.location.hostname === 'localhost' ? 'http://localhost:8000' : 'https://mark-floodsenseai.onrender.com'
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  // Auto-scroll to bottom whenever messages or loading state changes
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages, loading])
 
   const sendMessage = async (text: string) => {
     if (!text.trim() || loading) return
@@ -39,7 +45,42 @@ export default function Chat() {
     } finally { setLoading(false) }
   }
 
-  const fmt = (t: string) => t.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br/>')
+  const fmt = (t: string) => {
+    const lines = t.split('\n')
+    const html: string[] = []
+    let inList = false
+    for (const line of lines) {
+      const trimmed = line.trim()
+      // Numbered list: "1. item"
+      if (/^\d+\.\s/.test(trimmed)) {
+        if (!inList) { html.push('<ol style="margin:4px 0 4px 18px;padding:0">'); inList = true }
+        html.push(`<li>${trimmed.replace(/^\d+\.\s/, '').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}</li>`)
+        continue
+      }
+      // Bullet list: "- item" or "* item"
+      if (/^[-*]\s/.test(trimmed)) {
+        if (!inList) { html.push('<ul style="margin:4px 0 4px 18px;padding:0">'); inList = true }
+        html.push(`<li>${trimmed.slice(2).replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}</li>`)
+        continue
+      }
+      // Close list
+      if (inList) { html.push(inList ? '</ol>' : '</ul>'); inList = false }
+      // Header: ## or #
+      if (/^###\s/.test(trimmed)) {
+        html.push(`<strong style="font-size:0.95rem">${trimmed.slice(4)}</strong>`)
+      } else if (/^##\s/.test(trimmed)) {
+        html.push(`<strong style="font-size:1rem">${trimmed.slice(3)}</strong>`)
+      } else if (/^#\s/.test(trimmed)) {
+        html.push(`<strong style="font-size:1.05rem">${trimmed.slice(2)}</strong>`)
+      } else if (trimmed === '') {
+        html.push('<br/>')
+      } else {
+        html.push(trimmed.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'))
+      }
+    }
+    if (inList) html.push('</ol>')
+    return html.join('')
+  }
 
   return (
     <div className="page chat-page">
@@ -84,6 +125,8 @@ export default function Chat() {
               </div>
             </div>
           )}
+          {/* Auto-scroll anchor */}
+          <div ref={messagesEndRef} />
         </div>
 
         {/* Input */}

@@ -1,6 +1,6 @@
 """
-Phase 5 — Alert Scheduler
-Uses APScheduler to check flood risk for all subscribers every 30 minutes.
+Alert Scheduler
+Uses APScheduler to check flood risk for all subscribers every hour.
 If a subscriber's location exceeds their risk threshold, send a WhatsApp alert.
 """
 import asyncio
@@ -226,7 +226,7 @@ def start_scheduler():
         )
 
         scheduler.start()
-        print("[Scheduler] Started — flood alerts every 30 min, keep-alive ping every 10 min.")
+        print("[Scheduler] Started — flood alerts every hour, keep-alive ping every 10 min.")
 
 
 def stop_scheduler():

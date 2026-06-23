@@ -6,6 +6,7 @@ from app.services.twilio_service import handle_incoming_whatsapp
 router = APIRouter()
 
 ADMIN_KEY = os.getenv("ADMIN_SECRET_KEY", "")
+TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN", "")
 
 def _require_admin(x_admin_key: str | None):
     """Validate the admin secret key. Raises 403 if missing or wrong."""
@@ -15,16 +16,36 @@ def _require_admin(x_admin_key: str | None):
         raise HTTPException(status_code=403, detail="Forbidden: invalid or missing X-Admin-Key header.")
 
 
+def _validate_twilio_signature(request: Request, form_data: dict) -> bool:
+    """Validate the X-Twilio-Signature header to prevent spoofed webhooks."""
+    if not TWILIO_AUTH_TOKEN:
+        return True  # Can't validate without token — skip in dev/test
+    try:
+        from twilio.request_validator import RequestValidator
+        validator = RequestValidator(TWILIO_AUTH_TOKEN)
+        signature = request.headers.get("X-Twilio-Signature", "")
+        # Use the full URL as seen by Twilio (https)
+        url = str(request.url).replace("http://", "https://")
+        return validator.validate(url, form_data, signature)
+    except Exception:
+        return True  # If twilio lib unavailable, skip validation rather than block
+
+
 @router.post("/webhook", response_class=PlainTextResponse)
 async def whatsapp_webhook(request: Request):
     """Twilio WhatsApp webhook — responds instantly (avoids 5s Twilio timeout),
     then sends the actual reply as an outbound message via background task."""
     import asyncio
     form_data   = await request.form()
-    body        = form_data.get("Body", "").strip()
-    from_number = form_data.get("From", "")
-    latitude    = form_data.get("Latitude")
-    longitude   = form_data.get("Longitude")
+    form_dict   = dict(form_data)
+    body        = form_dict.get("Body", "").strip()
+    from_number = form_dict.get("From", "")
+    latitude    = form_dict.get("Latitude")
+    longitude   = form_dict.get("Longitude")
+
+    # Validate Twilio signature — reject spoofed requests
+    if not _validate_twilio_signature(request, form_dict):
+        raise HTTPException(status_code=403, detail="Invalid Twilio signature")
 
     # Fire reply in the background — do NOT await here, so we return instantly
     asyncio.create_task(_reply_async(

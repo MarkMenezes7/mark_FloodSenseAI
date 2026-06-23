@@ -14,6 +14,7 @@ export default function GlobalMap() {
   const hoverTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
   const [mapLoaded, setMapLoaded] = useState(false)
+  const [panelOpen, setPanelOpen] = useState(true)
 
   const API = window.location.hostname === 'localhost'
     ? 'http://localhost:8000'
@@ -165,33 +166,53 @@ export default function GlobalMap() {
     <div className="global-map-page">
       <div className="map-container-full">
 
+        {/* Toggle button — always visible on mobile when panel is closed */}
+        {!panelOpen && (
+          <button
+            className="map-panel-reopen-btn"
+            onClick={() => setPanelOpen(true)}
+            aria-label="Show map info panel"
+          >
+            🌍 Info
+          </button>
+        )}
+
         {/* Overlay Panel */}
-        <div className="map-overlay-panel">
-          <h1>🌍 Global Live Radar</h1>
-          <p>Real-time precipitation and rainfall intensity across the entire world, down to street-level neighborhoods.</p>
-
-          <div className="map-legend">
-            <div className="legend-item"><div className="legend-color color-extreme"></div> Extreme / Hail (Purple)</div>
-            <div className="legend-item"><div className="legend-color color-heavy"></div> Heavy Rain (Red)</div>
-            <div className="legend-item"><div className="legend-color color-mod"></div> Moderate Rain (Yellow)</div>
-            <div className="legend-item"><div className="legend-color color-light"></div> Light Rain (Blue)</div>
-          </div>
-
-          <div className="timestamp-badge">
-            🔄 Live satellite feed - updated {timeText}
-          </div>
-
-          {mapLoaded && (
-            <div style={{ marginTop: 10, color: '#475569', fontSize: '0.72rem' }}>
-              💡 Click anywhere on the map to see live weather
+        {panelOpen && (
+          <div className="map-overlay-panel">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <h1>🌍 Global Live Radar</h1>
+              <button
+                className="map-panel-close-btn"
+                onClick={() => setPanelOpen(false)}
+                aria-label="Close info panel"
+              >✕</button>
             </div>
-          )}
-          {!mapLoaded && (
-            <div style={{ marginTop: 12, color: '#475569', fontSize: '0.78rem' }}>
-              ⏳ Loading map...
+            <p>Real-time precipitation and rainfall intensity across the entire world, down to street-level neighborhoods.</p>
+
+            <div className="map-legend">
+              <div className="legend-item"><div className="legend-color color-extreme"></div> Extreme / Hail (Purple)</div>
+              <div className="legend-item"><div className="legend-color color-heavy"></div> Heavy Rain (Red)</div>
+              <div className="legend-item"><div className="legend-color color-mod"></div> Moderate Rain (Yellow)</div>
+              <div className="legend-item"><div className="legend-color color-light"></div> Light Rain (Blue)</div>
             </div>
-          )}
-        </div>
+
+            <div className="timestamp-badge">
+              🔄 Live satellite feed - updated {timeText}
+            </div>
+
+            {mapLoaded && (
+              <div style={{ marginTop: 10, color: '#475569', fontSize: '0.72rem' }}>
+                💡 Click anywhere on the map to see live weather
+              </div>
+            )}
+            {!mapLoaded && (
+              <div style={{ marginTop: 12, color: '#475569', fontSize: '0.78rem' }}>
+                ⏳ Loading map...
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Mapbox Map */}
         <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />

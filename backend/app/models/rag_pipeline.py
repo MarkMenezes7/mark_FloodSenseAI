@@ -94,7 +94,7 @@ def _expected_country(location_name: str) -> str | None:
 
 
 # 1. Define the Tool for the AI
-def check_live_flood_risk(location_name: str) -> dict:
+async def check_live_flood_risk(location_name: str) -> dict:
     """
     Fetches real-time weather and flood risk data for ANY specific city, neighborhood,
     or state (e.g., Nalasopara, Virar, Borivali, Pune, Texas).
@@ -109,9 +109,9 @@ def check_live_flood_risk(location_name: str) -> dict:
     expected_cc  = _expected_country(location_name)
 
     try:
-        with httpx.Client(timeout=10.0) as client:
+        async with httpx.AsyncClient(timeout=10.0) as client:
             # 1. Get coordinates
-            geo_resp = client.get("https://api.openweathermap.org/geo/1.0/direct", params={
+            geo_resp = await client.get("https://api.openweathermap.org/geo/1.0/direct", params={
                 "q": owm_query, "limit": 3, "appid": OPENWEATHER_API_KEY
             })
             geo_results = geo_resp.json()
@@ -132,26 +132,27 @@ def check_live_flood_risk(location_name: str) -> dict:
             city_name  = geo.get("name", owm_query)
             got_cc     = geo.get("country", "")
 
-            # Country sanity check — reject silently wrong results
+            # Country sanity check—reject silently wrong results
             if expected_cc and got_cc.upper() != expected_cc.upper():
                 return {"error": f"Location mismatch: OWM returned '{city_name}, {got_cc}' for '{location_name}'. Try a nearby larger city."}
-            
+
             # 2. Get live weather
-            weather_resp = client.get("https://api.openweathermap.org/data/2.5/weather", params={
+            weather_resp = await client.get("https://api.openweathermap.org/data/2.5/weather", params={
                 "lat": lat, "lon": lon, "appid": OPENWEATHER_API_KEY, "units": "metric"
             })
             weather = weather_resp.json()
-            
+
             if "main" not in weather:
                 return {"error": "Failed to fetch live weather data."}
 
-            temp = weather["main"]["temp"]
-            humidity = weather["main"]["humidity"]
+            temp       = weather["main"]["temp"]
+            humidity   = weather["main"]["humidity"]
             wind_speed = weather["wind"]["speed"]
-            
-            # OpenWeather gives rain in the last 1h or 3h. Our ML model expects 3h equivalent.
+
+            # OWM /weather endpoint almost never returns rain.3h — prefer it if present,
+            # otherwise use rain.1h directly (don't multiply; that overestimates).
             rain_1h = weather.get("rain", {}).get("1h", 0)
-            rain_3h = weather.get("rain", {}).get("3h", rain_1h * 3) 
+            rain_3h = weather.get("rain", {}).get("3h", rain_1h)
 
             # 3. Calculate Flood Risk using our ML Model
             risk_data = predict_flood_risk(
@@ -160,7 +161,7 @@ def check_live_flood_risk(location_name: str) -> dict:
                 temperature=temp,
                 wind_speed=wind_speed
             )
-            
+
             return {
                 "location_matched": city_name,
                 "lat": lat,
@@ -177,7 +178,7 @@ def check_live_flood_risk(location_name: str) -> dict:
         return {"error": f"Tool execution failed: {str(e)}"}
 
 
-def get_24h_forecast(lat: float, lon: float) -> str:
+async def get_24h_forecast(lat: float, lon: float) -> str:
     """
     Fetches the next 24 hours of 3-hourly forecast from OWM and returns
     a formatted string ready to inject into the AI prompt.
@@ -185,16 +186,15 @@ def get_24h_forecast(lat: float, lon: float) -> str:
     if not OPENWEATHER_API_KEY:
         return ""
     try:
-        import datetime as _dt
-        with httpx.Client(timeout=10.0) as client:
-            resp = client.get("https://api.openweathermap.org/data/2.5/forecast", params={
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.get("https://api.openweathermap.org/data/2.5/forecast", params={
                 "lat": lat, "lon": lon, "appid": OPENWEATHER_API_KEY,
                 "units": "metric", "cnt": 8   # 8 x 3h = 24 hours
             })
             data = resp.json()
             if "list" not in data:
                 return ""
-            lines = ["24-HOUR FORECAST (3-hour intervals, local times are UTC):"]
+            lines = ["24-HOUR FORECAST (3-hour intervals, times in UTC — IST = UTC+5:30):"]
             for slot in data["list"]:
                 dt_str = slot.get("dt_txt", "")
                 desc   = slot["weather"][0]["description"]
@@ -209,13 +209,6 @@ def get_24h_forecast(lat: float, lon: float) -> str:
     except Exception:
         return ""
 
-
-
-# 2. Configure model to use tools (model name from env — no hardcoding)
-model = genai.GenerativeModel(
-    model_name=GEMINI_MODEL,
-    tools=[check_live_flood_risk]
-)
 
 # Flood knowledge base - embedded directly
 FLOOD_KNOWLEDGE = """
@@ -371,7 +364,7 @@ async def get_rag_response(
         ]
         city_results = []
         for city in scan_cities:
-            data = check_live_flood_risk(city)
+            data = await check_live_flood_risk(city)
             if "error" not in data:
                 city_results.append({
                     "city": data["location_matched"],
@@ -417,7 +410,7 @@ Top 5 highest flood risk cities at this moment:
             extracted_location = extract_response.text.strip().strip('"').strip("'")
 
             if extracted_location and extracted_location.upper() != "NONE" and len(extracted_location) < 60:
-                weather_data = check_live_flood_risk(extracted_location)
+                weather_data = await check_live_flood_risk(extracted_location)
                 if "error" not in weather_data:
                     live_data_context = f"""
 LIVE REAL-TIME WEATHER DATA (fetched right now for '{extracted_location}'):
@@ -432,7 +425,7 @@ LIVE REAL-TIME WEATHER DATA (fetched right now for '{extracted_location}'):
 """
                     # If user is asking about a future/specific time, fetch the 24h forecast too
                     if is_time_specific and "lat" in weather_data:
-                        forecast_str = get_24h_forecast(weather_data["lat"], weather_data["lon"])
+                        forecast_str = await get_24h_forecast(weather_data["lat"], weather_data["lon"])
                         if forecast_str:
                             live_data_context += f"\n{forecast_str}\n"
         except Exception as e429:

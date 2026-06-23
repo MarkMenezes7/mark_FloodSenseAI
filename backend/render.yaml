@@ -13,13 +13,17 @@ services:
         sync: false
       - key: OPENWEATHER_API_KEY
         sync: false
-      - key: GOOGLE_API_KEY
+      - key: GEMINI_API_KEY
         sync: false
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash-lite
       - key: TWILIO_ACCOUNT_SID
         sync: false
       - key: TWILIO_AUTH_TOKEN
         sync: false
       - key: TWILIO_WHATSAPP_FROM
+        sync: false
+      - key: ADMIN_SECRET_KEY
         sync: false
       - key: FRONTEND_URL
         value: https://floodsenseai-frontend.vercel.app

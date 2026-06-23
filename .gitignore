@@ -9,6 +9,15 @@ __pycache__/
 venv/
 env/
 
+# Training & scratch scripts — local only, not for production
+backend/train_model.py
+backend/top_flood*.py
+backend/check_rain*.py
+backend/test_*.py
+backend/test_*.txt
+backend/err.txt
+*.test_tile.*
+
 # Environment variables — NEVER commit these
 backend/.env
 frontend/.env

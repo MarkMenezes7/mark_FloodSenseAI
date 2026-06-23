@@ -14,11 +14,6 @@ def load_model():
     return _ml_model
 
 
-# -- TEMPORARY TEST OVERRIDES (remove entries when done testing) --
-_TEST_OVERRIDES: dict = {
-    "guwahati": 85.0,   # forced 85% CRITICAL for heatmap/chatbot/WhatsApp testing
-}
-
 
 def predict_flood_risk(
     rainfall: float,
@@ -31,29 +26,10 @@ def predict_flood_risk(
     location_name: str = ""
 ) -> dict:
     """
-    Flood risk predictor with:
-    - Infrastructure/drainage quality multiplier per neighborhood
-    - Cumulative rainfall as river level proxy (Issue 6 fix)
-    - Recalibrated scoring thresholds (Issue 5 fix)
+    Flood risk predictor using ML model + rule-based fallback.
+    Applies infrastructure/drainage quality multiplier per neighborhood.
     """
     from app.data.infrastructure_data import get_infrastructure_multiplier, get_infrastructure_description
-
-    # -- TEMPORARY TEST OVERRIDE CHECK --
-    loc_lower = location_name.lower()
-    for test_loc, forced_score in _TEST_OVERRIDES.items():
-        if test_loc in loc_lower:
-            return {
-                "risk_score": forced_score,
-                "risk_level": "CRITICAL",
-                "color": "#ef4444",
-                "advice": "[TEST MODE] Evacuate immediately. Seek higher ground. Contact emergency services (112).",
-                "infrastructure_multiplier": get_infrastructure_multiplier(location_name),
-                "infrastructure_quality": get_infrastructure_description(get_infrastructure_multiplier(location_name)),
-                "inputs": {"rainfall": rainfall, "humidity": humidity,
-                           "temperature": temperature, "wind_speed": wind_speed,
-                           "river_level_estimated": river_level},
-                "test_override": True
-            }
 
     # If rain_3h > 20mm, rivers start filling. We use this as a proxy
     # since we don't have a live river gauge API.
@@ -61,6 +37,7 @@ def predict_flood_risk(
         # Rainfall in last 3h is a good proxy for river pressure
         # 10mm/3h → river_level ~1, 30mm → ~3, 50mm+ → ~5
         river_level = min(rainfall / 10.0, 5.0)
+
 
     # -- Issue 5 Fix: Recalibrated rule-based scoring --
     # Thresholds based on IMD rainfall categories:

@@ -1,8 +1,18 @@
-from fastapi import APIRouter, HTTPException
+import os
+from fastapi import APIRouter, HTTPException, Header
 from pydantic import BaseModel
 from app.db.database import get_pool
 
 router = APIRouter()
+
+ADMIN_KEY = os.getenv("ADMIN_SECRET_KEY", "")
+
+def _require_admin(x_admin_key: str | None):
+    """Validate admin secret key. Raises 403 if missing or wrong."""
+    if not ADMIN_KEY:
+        raise HTTPException(status_code=500, detail="ADMIN_SECRET_KEY not configured on server.")
+    if x_admin_key != ADMIN_KEY:
+        raise HTTPException(status_code=403, detail="Forbidden: invalid or missing X-Admin-Key header.")
 
 class AlertSubscription(BaseModel):
     phone_number: str
@@ -36,8 +46,9 @@ async def unsubscribe_alert(phone_number: str):
         return {"message": "Unsubscribed successfully", "success": True}
 
 @router.get("/subscribers")
-async def get_subscribers():
-    """Get all active subscribers (admin use)"""
+async def get_subscribers(x_admin_key: str | None = Header(default=None)):
+    """Get all active subscribers — admin only (requires X-Admin-Key header)"""
+    _require_admin(x_admin_key)
     pool = await get_pool()
     async with pool.acquire() as conn:
         rows = await conn.fetch("SELECT phone_number, location_name, risk_threshold FROM alert_subscriptions")

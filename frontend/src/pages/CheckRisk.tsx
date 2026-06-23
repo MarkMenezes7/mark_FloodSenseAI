@@ -201,7 +201,7 @@ export default function CheckRisk() {
                 </div>
                 <div className="card weather-stat">
                   <span className="ws-icon">🌧️</span>
-                  <div><p className="ws-label">Rainfall</p><p className="ws-val">{weather.current.rainfall_3h.toFixed(1)} mm</p><p className="ws-sub">Last 3 hours</p></div>
+                  <div><p className="ws-label">Rainfall</p><p className="ws-val">{weather.current.rainfall_3h > 0 ? `${weather.current.rainfall_3h.toFixed(1)} mm` : 'No rainfall'}</p><p className="ws-sub">Last 3 hours</p></div>
                 </div>
                 <div className="card weather-stat">
                   <span className="ws-icon">💧</span>
@@ -225,10 +225,10 @@ export default function CheckRisk() {
                 <div className="forecast-row">
                   {weather.forecast.map((item, i) => (
                     <div key={i} className="forecast-chip">
-                      <p className="fc-time">{new Date(item.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                      <p className="fc-time">{new Date(item.time + 'Z').toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} <span style={{fontSize:'0.65rem',opacity:0.6}}>UTC</span></p>
                       <img src={`https://openweathermap.org/img/wn/${item.icon}.png`} alt={item.description} className="fc-icon" />
                       <p className="fc-temp">{item.temperature.toFixed(0)}°C</p>
-                      <p className="fc-rain">🌧 {item.rainfall.toFixed(1)}mm</p>
+                      <p className="fc-rain">{item.rainfall > 0 ? `🌧 ${item.rainfall.toFixed(1)}mm` : '☀️ No rain'}</p>
                     </div>
                   ))}
                 </div>
