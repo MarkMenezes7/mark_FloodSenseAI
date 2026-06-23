@@ -87,7 +87,7 @@
 }
 
 .map-overlay-panel p {
-  color: var(--text-muted);
+  color: #cbd5e1;
   font-size: 0.85rem;
   line-height: 1.5;
   margin: 0 0 16px;
@@ -98,7 +98,7 @@
   flex-direction: column;
   gap: 8px;
   font-size: 0.8rem;
-  color: var(--text-muted);
+  color: #cbd5e1;
 }
 
 .legend-item {
